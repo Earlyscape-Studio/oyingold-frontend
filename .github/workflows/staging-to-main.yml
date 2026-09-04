@@ -1,0 +1,37 @@
+name: Auto PR and Merge Staging to Main
+
+on:
+  push:
+    branches:
+      - staging
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create or find PR from staging to main
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+        run: |
+          existing=$(gh pr list --base main --head staging --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "number=$existing" >> "$GITHUB_OUTPUT"
+          else
+            url=$(gh pr create --base main --head staging \
+              --title "Chore: Promote staging to main" \
+              --body "Automated PR promoting staging into main.")
+            echo "number=$(echo "$url" | grep -o '[0-9]*$')" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+        run: gh pr merge --auto --squash "${{ steps.pr.outputs.number }}"
