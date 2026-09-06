@@ -30,9 +30,12 @@ export type Product = {
     id: string;
     name: string;
     description: string | null;
+    images: string[];
+    isFeatured: boolean;
     category: Category;
     brand: Brand;
     variants: ProductVariant[]
+    createdAt: string
 }
 
 
@@ -149,4 +152,27 @@ export async function createProduct (
 
     return {ok: true, product: data};
 }
+
+
+
+export function getStartingPrice(product:Product) : {amount: string; unit: "piece" | "carton"} | null {
+
+    if(product.variants.length === 0) return null;
+
+    let best: {amount: string; unit: "piece" | "carton"} | null = null;
+
+    for (const v of product.variants) {
+      const candidate =  v.piecePrice
+        ? {amount: v.piecePrice, unit: "piece" as const}
+        : {amount: v.cartonPrice, unit: "carton" as const};
+
+      if (!best || parseFloat(candidate.amount) < parseFloat(best.amount)){
+        best = candidate
+      }
+    }
+
+    return best;
+
+}
+
 
