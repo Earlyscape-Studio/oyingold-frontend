@@ -43,6 +43,25 @@ function useCarousel() {
   return context
 }
 
+function useCarouselCanScroll(
+  api: CarouselApi,
+  direction: "prev" | "next"
+) {
+  return React.useSyncExternalStore(
+    (onStoreChange) => {
+      if (!api) return () => {}
+      api.on("select", onStoreChange)
+      api.on("reInit", onStoreChange)
+      return () => {
+        api.off("select", onStoreChange)
+        api.off("reInit", onStoreChange)
+      }
+    },
+    () => (direction === "prev" ? api?.canScrollPrev() : api?.canScrollNext()) ?? false,
+    () => false
+  )
+}
+
 function Carousel({
   orientation = "horizontal",
   opts,
@@ -59,14 +78,17 @@ function Carousel({
     },
     plugins
   )
-  const [canScrollPrev, setCanScrollPrev] = React.useState(false)
-  const [canScrollNext, setCanScrollNext] = React.useState(false)
+  // const [canScrollPrev, setCanScrollPrev] = React.useState(false)
+  // const [canScrollNext, setCanScrollNext] = React.useState(false)
 
-  const onSelect = React.useCallback((api: CarouselApi) => {
-    if (!api) return
-    setCanScrollPrev(api.canScrollPrev())
-    setCanScrollNext(api.canScrollNext())
-  }, [])
+  // const onSelect = React.useCallback((api: CarouselApi) => {
+  //   if (!api) return
+  //   setCanScrollPrev(api.canScrollPrev())
+  //   setCanScrollNext(api.canScrollNext())
+  // }, [])
+
+  const canScrollPrev = useCarouselCanScroll(api, "prev")
+  const canScrollNext = useCarouselCanScroll(api, "next")
 
   const scrollPrev = React.useCallback(() => {
     api?.scrollPrev()
@@ -94,16 +116,16 @@ function Carousel({
     setApi(api)
   }, [api, setApi])
 
-  React.useEffect(() => {
-    if (!api) return
-    onSelect(api)
-    api.on("reInit", onSelect)
-    api.on("select", onSelect)
+  // React.useEffect(() => {
+  //   if (!api) return
+  //   onSelect(api)
+  //   api.on("reInit", onSelect)
+  //   api.on("select", onSelect)
 
-    return () => {
-      api?.off("select", onSelect)
-    }
-  }, [api, onSelect])
+  //   return () => {
+  //     api?.off("select", onSelect)
+  //   }
+  // }, [api, onSelect])
 
   return (
     <CarouselContext.Provider
