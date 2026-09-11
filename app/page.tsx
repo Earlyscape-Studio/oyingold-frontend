@@ -1,16 +1,16 @@
-import {Suspense} from "react";
-import {HeroCarousel} from "@/components/app/HeroCarousel";
-import {CategoryGrid} from "@/components/app/CategoryGrid";
-import {PromoBanner} from "@/components/app/PromoBanner";
-import {FeaturedProductsSection} from "@/components/app/FeaturedProductsSection";
-import {NewProductsSection} from "@/components/app/NewProductsSection";
-import {ProductCardSkeleton} from "@/components/app/ProductCardSkeleton";
-import {Skeleton} from "@/components/ui/skeleton";
+import { Suspense } from "react";
+import { HeroCarousel } from "@/components/app/HeroCarousel";
+import { CategoryGrid } from "@/components/app/CategoryGrid";
+import { PromoBanner } from "@/components/app/PromoBanner";
+import { FeaturedProductsSection } from "@/components/app/FeaturedProductsSection";
+import { NewProductsSection } from "@/components/app/NewProductsSection";
+import { ProductCardSkeleton } from "@/components/app/ProductCardSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
-function ProductGridSkeleton(){
+function ProductGridSkeleton() {
   return (
-     <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-10">
       <Skeleton className="h-6 w-40" />
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -24,7 +24,7 @@ function ProductGridSkeleton(){
 
 function CategoryGridSkeleton() {
   return (
-     <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-10">
       <Skeleton className="h-6 w-40" />
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -52,6 +52,8 @@ export default function HomePage() {
         ctaLabel="Shop Now"
         ctaHref="/products"
         variant="dark"
+        image="/images/product-basket.png"
+        imageAlt="Shopping basket full of groceries"
       />
 
       <Suspense fallback={<ProductGridSkeleton />}>
@@ -63,6 +65,9 @@ export default function HomePage() {
         ctaLabel="Shop Now"
         ctaHref="/products"
         variant="light"
+        image="/images/product-basket.png"
+        imageAlt="Shopping basket full of groceries"
+        imagePosition="left"
       />
 
       <Suspense fallback={<ProductGridSkeleton />}>
