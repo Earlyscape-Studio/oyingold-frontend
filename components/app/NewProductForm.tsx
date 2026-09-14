@@ -1,15 +1,17 @@
 "use client"
 
 
-import {useState} from "react"
-import {useRouter} from "next/navigation"
-import {createProduct} from "@/lib/api"
-import {supabase} from "@/lib/supabase-client"
-import type {Category, Brand} from "@/lib/api"
-import {Button} from "@/components/ui/button"
-import {Label} from "@/components/ui/label"
-import {Input} from "@/components/ui/input"
-import {Textarea} from "@/components/ui/textarea"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Image from "next/image";
+import { createProduct } from "@/lib/api"
+import { uploadProductImages } from "@/lib/upload"
+import { supabase } from "@/lib/supabase-client"
+import type { Category, Brand } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
     Select,
     SelectContent,
@@ -22,25 +24,42 @@ import {
     CardContent,
     CardHeader,
     CardTitle
-}  from "@/components/ui/card"
+} from "@/components/ui/card"
 
 
 
 
-export function NewProductForm ({categories, brands}: {categories: Category[], brands: Brand[]}) {
+export function NewProductForm({ categories, brands }: { categories: Category[], brands: Brand[] }) {
     const router = useRouter();
     const [submitting, setSubmitting] = useState(false);
     const [categoryId, setCategoryId] = useState("");
     const [brandId, setBrandId] = useState("");
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [uploadingImages, setUploadingImages] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
 
 
-    async function handleSubmit (e: React.FormEvent<HTMLFormElement>){
+
+    const previewUrls = imageFiles.map((file) => URL.createObjectURL(file));
+
+
+    function handleImagesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+        const files = Array.from(e.target.files ?? []);
+        setImageFiles((prev) => [...prev, ...files]);
+        e.target.value = "";
+    }
+
+
+    function removeImage(index: number) {
+        setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    }
+
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError(null);
 
-        if(!categoryId || !brandId){
+        if (!categoryId || !brandId) {
             setError("Please select a category and a brand");
             return;
         }
@@ -50,22 +69,41 @@ export function NewProductForm ({categories, brands}: {categories: Category[], b
 
         const form = new FormData(e.currentTarget);
 
-        const {data: sessionData} = await supabase.auth.getSession();
+        const { data: sessionData } = await supabase.auth.getSession();
 
         const accessToken = sessionData.session?.access_token;
 
-        if(!accessToken){
+        if (!accessToken) {
             setError("Your session expired. Please sign in again")
             setSubmitting(false);
             return;
         }
 
 
+        let imageUrls: string[] = [];
+
+
+        if (imageFiles.length > 0) {
+            setUploadingImages(true);
+            const uploadResult = await uploadProductImages(imageFiles);
+            setUploadingImages(false);
+
+
+            if (!uploadResult.ok) {
+                setError(uploadResult.error);
+                setSubmitting(false);
+                return;
+            }
+
+            imageUrls = uploadResult.urls;
+        }
+
         const result = await createProduct({
             name: String(form.get("name") ?? ""),
             description: String(form.get("description") ?? "") || undefined,
             categoryId,
             brandId,
+            images: imageUrls,
             variant: {
                 sku: String(form.get("sku") ?? ""),
                 unitLabel: String(form.get("unitLabel") ?? ""),
@@ -75,12 +113,12 @@ export function NewProductForm ({categories, brands}: {categories: Category[], b
                 stockLevel: Number(form.get("stockLevel") ?? 0),
                 lowStockThreshold: Number(form.get("lowStockThreshold") ?? 10),
             }
-        },accessToken)
-        
+        }, accessToken)
+
         setSubmitting(false);
 
 
-        if(!result.ok) {
+        if (!result.ok) {
             setError(result.error);
             return;
         }
@@ -151,6 +189,48 @@ export function NewProductForm ({categories, brands}: {categories: Category[], b
                             </Select>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-sm">Images</CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                        Upload one or more product photos. The first image is used as
+                        the primary thumbnail.
+                    </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImagesSelected}
+                    />
+
+                    {imageFiles.length > 0 && (
+                        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                            {previewUrls.map((url, i) => (
+                                <div key={url} className="group relative aspect-square">
+                                    <Image
+                                        src={url}
+                                        alt={`Preview ${i + 1}`}
+                                        fill
+                                        className="rounded-md object-cover"
+                                        unoptimized
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(i)}
+                                        className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-destructive text-xs text-white"
+                                        aria-label="Remove image"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -241,7 +321,11 @@ export function NewProductForm ({categories, brands}: {categories: Category[], b
             </Card>
 
             <Button type="submit" disabled={submitting} className="w-full">
-                {submitting ? "Adding product…" : "Add product"}
+                {uploadingImages
+                    ? "Uploading images…"
+                    : submitting
+                        ? "Adding product…"
+                        : "Add product"}
             </Button>
         </form>
     )
