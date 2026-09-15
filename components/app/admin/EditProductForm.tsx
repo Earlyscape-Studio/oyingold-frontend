@@ -119,18 +119,17 @@ export function EditProductForm({
         );
 
 
-        setSubmitting(true);
-
-
 
         if (!result.ok) {
             setError(result.error);
+            setSubmitting(false);
             return;
         }
 
         setNewFiles([]);
-        setExistingImages([]);
+        // setExistingImages([]);
         setSuccess(true);
+        setSubmitting(false);
         router.refresh();
     }
 

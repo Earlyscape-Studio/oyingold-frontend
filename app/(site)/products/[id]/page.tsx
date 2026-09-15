@@ -1,25 +1,23 @@
-import {Suspense} from "react";
-import {notFound} from "next/navigation";
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import {HugeiconsIcon} from "@hugeicons/react";
-import {Image01Icon} from "@hugeicons/core-free-icons";
-import {VariantSelector} from "@/components/app/VariantSelector";
-import {getProduct} from "@/lib/api";
-import {RelatedProducts} from "@/components/app/RelatedProducts";
-import {Button} from "@/components/ui/button";
-import {Skeleton} from "@/components/ui/skeleton";
-import {ProductCardSkeleton} from "@/components/app/ProductCardSkeleton";
+import { VariantSelector } from "@/components/app/VariantSelector";
+import { getProduct } from "@/lib/api";
+import { RelatedProducts } from "@/components/app/RelatedProducts";
+import { ProductImageGallery } from "@/components/app/ProductImageGallery";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ProductCardSkeleton } from "@/components/app/ProductCardSkeleton";
 
 
-export default async function ProductDetailPage ({
+export default async function ProductDetailPage({
     params,
-} : {params: Promise<{id: string}>}) {
-    const {id} = await params;
+}: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const product = await getProduct(id);
 
 
-    if(!product){
+    if (!product) {
         notFound();
     }
 
@@ -30,21 +28,10 @@ export default async function ProductDetailPage ({
             </Button>
 
             <div className="mt-4 grid grid-cols-1 gap-10 md:grid-cols-2">
-                <div className="relative aspect-square w-full rounded-lg bg-muted">
-                    {product.images[0] ? (
-                        <Image
-                            src={product.images[0]}
-                            alt={product.name}
-                            fill
-                            className="object-contain p-8"
-                            priority
-                        />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                            <HugeiconsIcon icon={Image01Icon} size={48} />
-                        </div>
-                    )}
-                </div>
+                <ProductImageGallery
+                    images={product.images}
+                    productName={product.name}
+                />
 
                 <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
