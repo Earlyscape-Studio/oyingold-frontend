@@ -40,7 +40,7 @@ export default function AdminLoginPage () {
             return;
         }
 
-        router.push("/admin/products/new");
+        router.push("/admin/dashboard");
         router.refresh();
     }
 

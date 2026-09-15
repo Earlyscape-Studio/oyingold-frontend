@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import {SiteHeader} from "@/components/app/layout/site-header"
-import {SiteFooter} from "@/components/app/layout/site-footer"
-import {Toaster} from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'});
 
@@ -36,11 +35,11 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", "font-sans", openSans.variable)}
     >
       <body className="min-h-full flex flex-col">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter/>
+        <TooltipProvider>
+          {children}
+        </TooltipProvider>
         <Toaster />
-        </body>
+      </body>
     </html>
   );
 }
