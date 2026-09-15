@@ -100,6 +100,8 @@ export function ShopControls({
     const filtered = useMemo(() => {
         let list = products.filter((p) => {
             const price = priceOf(p);
+            if (price <= 0) return true;
+
             return price >= range[0] && price <= range[1];
         })
 

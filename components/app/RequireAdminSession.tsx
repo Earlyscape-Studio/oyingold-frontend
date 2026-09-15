@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {supabase} from "@/lib/supabase-client";
+import {getMe} from "@/lib/api";
 
 
 
@@ -14,13 +15,41 @@ export function RequireAdminSession ({
     const [checked, setChecked] = useState(false);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({data}) => {
-            if (!data.session){
+        let cancelled = false;
+
+        async function check(){
+            const {data} = await supabase.auth.getSession();
+
+            if(!data.session){
                 router.replace("/admin/login");
-            }else{
-                setChecked(true);
+                return;
             }
-        });
+            const me = await getMe(data.session.access_token);
+
+            if(cancelled) return;
+
+            if(!me || me.role !== "ADMIN"){
+                await supabase.auth.signOut();
+                router.replace("/admin/login");
+                return;
+            }
+
+            setChecked(true);
+        }
+
+        check();
+        
+        return () => {
+            cancelled = true;
+        }
+
+        // supabase.auth.getSession().then(({data}) => {
+        //     if (!data.session){
+        //         router.replace("/admin/login");
+        //     }else{
+        //         setChecked(true);
+        //     }
+        // });
     }, [router]);
 
 
