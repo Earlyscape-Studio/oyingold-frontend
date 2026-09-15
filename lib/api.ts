@@ -208,7 +208,8 @@ export async function getProducts(
 
 
     const res = await fetch(`${API_URL}/products?${searchParams.toString()}`, {
-        next: {revalidate: 30}
+        // next: {revalidate: 30}
+        cache: "no-store"
     });
 
     if(!res.ok){
@@ -220,7 +221,8 @@ export async function getProducts(
 
 export async function getProduct(id: string): Promise<Product | null>{
     const res = await fetch(`${API_URL}/products/${id}`, {
-        next: {revalidate: 30}
+        // next: {revalidate: 30}
+        cache: "no-store"
     });
 
     if(res.status === 404) return null;
