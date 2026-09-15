@@ -1,4 +1,4 @@
-import {getCategories, createCategory, updateCategory, deleteCategory} from "@/lib/api";
+import {getCategories} from "@/lib/api";
 import {NameSlugManager} from "@/components/app/admin/NameSlugManager";
 
 
@@ -9,15 +9,7 @@ export default async function AdminCategoriesPage(){
     return(
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">Categories</h1>
-            <NameSlugManager
-                label="Category"
-                items={categories}
-                actions={{
-                    create: createCategory,
-                    update: updateCategory,
-                    remove: deleteCategory
-                }}
-            />
+            <NameSlugManager label="Category" items={categories} resource="categories" />
         </div>
     );
 }

@@ -31,7 +31,7 @@ import { RequireAdminSession } from "@/components/app/RequireAdminSession";
 
 
 const NAV_ITEMS = [
-    { href: "/admin", label: "Dashboard", icon: DashboardSpeed01Icon },
+    { href: "/admin/dashboard", label: "Dashboard", icon: DashboardSpeed01Icon },
     { href: "/admin/products", label: "Products", icon: Package01Icon },
     { href: "/admin/orders", label: "Orders", icon: ShoppingCart01Icon },
     { href: "/admin/categories", label: "Categories", icon: Tag01Icon },
@@ -50,8 +50,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     async function handleSignOut() {
-        await supabase.auth.signOut;
-        router.replace("admin/login");
+        await supabase.auth.signOut();
+        router.replace("/admin/login");
     }
 
 

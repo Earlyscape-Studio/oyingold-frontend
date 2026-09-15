@@ -35,7 +35,7 @@ export default async function ProductsPage({
                 </Link>
                 {categories.map((c) => (
                     <Link
-                        key={c.id}
+                        key={c.slug}
                         href={`/products?category=${c.slug}`}
                         className={cn(
                             "rounded px-2 py-1.5",

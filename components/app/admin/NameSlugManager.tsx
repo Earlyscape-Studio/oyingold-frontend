@@ -1,8 +1,19 @@
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase-client";
-import type { Category, Brand } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import {
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    createBrand,
+    updateBrand,
+    deleteBrand,
+    type Category,
+    type Brand,
+} from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import {
     Table,
@@ -15,12 +26,21 @@ import {
 
 
 type Item = Category | Brand;
+type Resource = "categories" | "brands";
 
-type Actions = {
-    create: (input: { name: string; slug: string }, token: string) => Promise<{ ok: true; data: Item } | { ok: false; error: string }>;
-    update: (id: string, input: { name?: string; slug?: string }, token: string) => Promise<{ ok: true, data: Item } | { ok: false; error: string }>;
-    remove: (id: string, token: string) => Promise<{ ok: true } | { ok: false; error: string }>;
-}
+// type Actions = {
+//     create: (input: { name: string; slug: string }, token: string) => Promise<{ ok: true; data: Item } | { ok: false; error: string }>;
+//     update: (id: string, input: { name?: string; slug?: string }, token: string) => Promise<{ ok: true, data: Item } | { ok: false; error: string }>;
+//     remove: (id: string, token: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+// }
+
+
+type Props = {
+    label: string;
+    items: Item[];
+    resource: Resource;
+};
+
 
 
 function slugify(value: string) {
@@ -43,11 +63,12 @@ async function getToken(): Promise<string | null> {
 
 function EditableRow({
     item,
-    actions,
+    resource,
     onDone
 }: {
     item: Item;
-    actions: Actions;
+    // actions: Actions;
+    resource: Resource
     onDone: () => void;
 }) {
     const [name, setName] = useState(item.name);
@@ -68,7 +89,11 @@ function EditableRow({
             return;
         }
 
-        const result = await actions.update(item.id, { name, slug }, token);
+        const result = resource === "categories"
+                ? await updateCategory(item.id, { name, slug }, token)
+                : await updateBrand(item.id, { name, slug }, token);
+
+
         setSaving(false);
 
         if (!result.ok) {
@@ -102,12 +127,8 @@ function EditableRow({
 export function NameSlugManager({
     label,
     items,
-    actions
-}: {
-    label: string;
-    items: Item[];
-    actions: Actions;
-}) {
+    resource
+}: Props) {
     const router = useRouter();
     const [editingId, setEditingId] = useState<string | null>(null);
     const [newName, setNewName] = useState("");
@@ -132,11 +153,16 @@ export function NameSlugManager({
             return;
         }
 
+        const input = {
+            name: newName,
+            slug: newSlug || slugify(newName),
+        };
 
-        const result = await actions.create(
-            { name: newName, slug: newSlug || slugify(newName) },
-            token
-        );
+
+        const result = resource === "categories"
+                ? await createCategory(input, token)
+                : await createBrand(input, token);
+
 
         setCreating(false);
 
@@ -168,7 +194,11 @@ export function NameSlugManager({
         }
 
 
-        const result = await actions.remove(item.id, token);
+        const result = resource === "categories"
+                ? await deleteCategory(item.id, token)
+                : await deleteBrand(item.id, token);
+        
+        
         setDeletingId(null);
 
 
@@ -243,7 +273,7 @@ export function NameSlugManager({
                                     <EditableRow
                                         key={item.id}
                                         item={item}
-                                        actions={actions}
+                                        resource={resource}
                                         onDone={() => {
                                             setEditingId(null);
                                             router.refresh();
