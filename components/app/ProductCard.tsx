@@ -1,23 +1,69 @@
+"use client";
+
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type {Product} from "@/lib/api";
-import {getStartingPrice} from "@/lib/api";
-import {formatNaira} from "@/lib/format";
-import {HugeiconsIcon} from "@hugeicons/react";
-import {ShoppingCart01Icon, FavouriteIcon, Image01Icon} from "@hugeicons/core-free-icons";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import type { Product } from "@/lib/api";
+import { getStartingPrice } from "@/lib/api";
+import { formatNaira } from "@/lib/format";
+import { useCart } from "@/lib/cart-context";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ShoppingCart01Icon, FavouriteIcon, Image01Icon } from "@hugeicons/core-free-icons";
 // import {Card, CardContent} from "@/components/ui/card";
 // import {Badge} from "@/components/ui/badge";
 
 
 
 
-export function ProductCard ({product}: {product: Product}) {
+export function ProductCard({ product }: { product: Product }) {
+
+    const router = useRouter();
+    const { addItem } = useCart();
+    const [adding, setAdding] = useState(false);
+
     const price = getStartingPrice(product);
     const hasMultipleVariants = product.variants.length > 1;
     const image = product.images[0];
     // const fromVariant = product.variants.reduce((lowest, v) => parseFloat(v.cartonPrice) < parseFloat(lowest.cartonPrice) ? v : lowest, product.variants[0]);
 
+    async function handleQuickAdd() {
+        if (!price) return;
 
+        const variant = product.variants.find((v) => {
+            const candidateAmount = v.piecePrice ?? v.cartonPrice;
+            const candidateUnit = v.piecePrice ? "piece" : "carton";
+            return candidateAmount === price.amount && candidateUnit === price.unit;
+        }) ?? product.variants[0];
+
+
+        if (!variant) return;
+
+        setAdding(true);
+
+        const result = await addItem({
+            productVariantId: variant.id,
+            pricingType: price.unit,
+            quantity: 1,
+        });
+
+        setAdding(false);
+
+
+        if (!result.ok) {
+            if (result.error.toLowerCase().includes("logged in")) {
+                toast.error("Please log in to add items to your cart.");
+                router.push("/login") //TODO: again don't forget to alter this to trigger a modal instead.
+                return;
+            }
+            toast.error(result.error);
+            return;
+        }
+
+        toast.success("Added to cart")
+    }
 
     return (
         <div className="group relative flex flex-col overflow-hidden rounded-lg border">
@@ -62,10 +108,12 @@ export function ProductCard ({product}: {product: Product}) {
                 <div className="mt-3 flex items-center gap-2">
                     <button
                         type="button"
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-blue-950 py-2 text-xs font-semibold text-white transition hover:bg-blue-900"
+                        disabled={!price || adding}
+                        onClick={handleQuickAdd}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-blue-950 py-2 text-xs font-semibold text-white transition hover:bg-blue-900 disabled:opacity-50"
                     >
                         <HugeiconsIcon icon={ShoppingCart01Icon} size={14} />
-                        ADD TO CART
+                        {adding ? "ADDING…" : "ADD TO CART"}
                     </button>
                     <button
                         type="button"
