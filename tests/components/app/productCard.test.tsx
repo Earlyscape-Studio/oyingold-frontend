@@ -1,8 +1,22 @@
-import {describe, it, expect} from "vitest";
+import {describe, it, expect, vi} from "vitest";
 import {render, screen} from "@testing-library/react";
 import {ProductCard} from "@/components/app/ProductCard";
 import type {Product} from "@/lib/api";
 
+
+
+vi.mock("next/navigation", () => ({
+    useRouter: () => ({
+        push: vi.fn()
+    })
+}))
+
+
+vi.mock("@/lib/cart-context", () => ({
+    useCart: () => ({
+        addItem: vi.fn()
+    })
+}))
 
 
 const product: Product = {
