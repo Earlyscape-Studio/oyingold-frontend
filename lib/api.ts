@@ -161,7 +161,35 @@ type ProductListParams = {
 }
 
 
+export type PricingType = "carton" | "piece";
 
+export type CartItem = {
+    id: string;
+    cartId: string;
+    productVariantId: string;
+    pricingType: PricingType;
+    quantity: number;
+    createdAt: string;
+    updatedAt: string;
+    productVariant: ProductVariant & {
+        product: Product;
+    }
+}
+
+
+export type Cart = {
+    id: string;
+    userId: string;
+    createdAt: string;
+    updatedAt: string;
+    items: CartItem[];
+}
+
+export type CartItemInput = {
+    productVariantId: string;
+    pricingType: PricingType;
+    quantity?: number;
+}
 
 
 
@@ -540,4 +568,143 @@ export async function updateOrderStatus(
 
 
     return {ok: true, order: data};
+}
+
+
+//-------------------------Cart----------------------
+
+export function getCartItemUnitPrice (item: CartItem): number {
+    const price = item.pricingType === "piece"
+            ? item.productVariant.piecePrice
+            : item.productVariant.cartonPrice
+
+    return price ? parseFloat(price) : 0
+
+}
+
+
+export function getCartTotal(cart: Cart | null): number{
+    if(!cart) return 0;
+    return cart.items.reduce(
+        (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity,
+        0
+    );
+}
+
+
+export function getCartItemCount(cart: Cart | null) : number{
+    if (!cart) return 0;
+    return cart.items.reduce((sum, item) => sum + item.quantity, 0);
+}
+
+
+
+export async function getCart(accessToken: string): Promise<Cart> {
+    const res = await fetch(`${API_URL}/cart`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        cache: "no-store"
+    });
+
+
+    if(res.ok){
+        throw new Error(`Failed to fetch cart ${res.status}`);
+    }
+
+    return res.json();
+}
+
+
+export async function addCartItem(
+    input: CartItemInput,
+    accessToken: string
+): Promise<{ok: true, cart: Cart} | {ok: false, error: string}> {
+    const res = await fetch(`${API_URL}/cart/items`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorize: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(input)
+    })
+
+    const data = await res.json();
+
+
+    if(!res.ok){
+        return {ok: false, error: data?.error ?? "Failed to add item to cart"};
+    }
+
+    return {ok: true, cart: data};
+}
+
+
+export async function updateCartItemQuantity(
+    itemId: string,
+    quantity: number,
+    accessToken: string
+): Promise<{ok: true, cart: Cart} | {ok: false, error: string}>{
+    const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({quantity})
+    });
+
+    const data = await res.json();
+
+
+    if(!res.ok){
+        return {ok: false, error: data?.error ?? "Failed to update cart item"}
+    }
+
+    return {ok: true, cart: data};
+}
+
+
+
+
+export async function removeCartItem(
+    itemId: string,
+    accessToken: string
+): Promise<{ok: true, cart: Cart} | {ok: false, error: string}> {
+    const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        }
+    });
+
+
+    const data = await res.json()
+
+    if(!res.ok){
+        return {ok: false, error: data?.error ?? "Failed to remove cart item"}
+    }
+
+    return {ok: true, cart: data}
+}
+
+
+
+export async function clearCart(
+    accessToken: string
+): Promise<{ok: true} | {ok: false, error: string}>{
+    const res = await fetch(`${API_URL}/cart`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        }
+    })
+
+
+    if(!res.ok){
+        const data = await res.json().catch(() => null);
+        return {ok: false, error: data?.error ?? "Failed to clear cart"}
+    }
+
+    return {ok: true};
 }

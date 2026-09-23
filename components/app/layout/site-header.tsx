@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image"
-import {HugeiconsIcon} from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
     SearchIcon,
     UserIcon,
@@ -13,12 +15,16 @@ import {
     InputGroupInput
 
 } from "@/components/ui/input-group"
-import {Button} from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+import { useCart } from "@/lib/cart-context";
 
 
 
 
 export function SiteHeader() {
+    const { itemCount } = useCart();
+
+
     return (
         <header className="sticky top-0 z-40 bg-white">
             <div className="bg-red-600 py-2 text-center text-xs text-white">
@@ -33,11 +39,11 @@ export function SiteHeader() {
 
             <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-4">
                 <Link href="/" className="shrink-0 text-xl font-bold text-red-600">
-                   <Image
-                   src="./images/Logo-combo.svg"
-                   alt="oyingold logo"
-                   width={250}
-                   height={150}
+                    <Image
+                        src="./images/Logo-combo.svg"
+                        alt="oyingold logo"
+                        width={250}
+                        height={150}
                     />
                 </Link>
 
@@ -51,14 +57,14 @@ export function SiteHeader() {
                             className="w-full py-2 text-sm"
                         />
                         <InputGroupAddon align="inline-end" className="flex items-center justify-end">
-                        <Button
-                            type="submit"
-                            variant="outline"
-                            aria-label="Search"
-                            className="h-8 w-8 bg-red-600 text-white rounded-full hover:bg-red-300"
-                        >
-                            <HugeiconsIcon icon={SearchIcon} size={18} />
-                        </Button>
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                aria-label="Search"
+                                className="h-8 w-8 bg-red-600 text-white rounded-full hover:bg-red-300"
+                            >
+                                <HugeiconsIcon icon={SearchIcon} size={18} />
+                            </Button>
                         </InputGroupAddon>
                     </InputGroup>
                     {/* </div> */}
@@ -71,16 +77,16 @@ export function SiteHeader() {
                     </Link>
 
                     <Link href="/wishlist" className="relative text-blue-950" aria-label="Wishlist">
-                        <HugeiconsIcon icon={FavouriteIcon} size={20} className="fill-blue-600"  />
+                        <HugeiconsIcon icon={FavouriteIcon} size={20} className="fill-blue-600" />
                         <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white">
                             0
                         </span>
                     </Link>
 
                     <Link href="/cart" className="relative text-blue-950" aria-label="Cart">
-                        <HugeiconsIcon icon={ShoppingCart01Icon} size={20}className="fill-blue-600" />
+                        <HugeiconsIcon icon={ShoppingCart01Icon} size={20} className="fill-blue-600" />
                         <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white">
-                            0
+                            {itemCount}
                         </span>
                     </Link>
                 </nav>
