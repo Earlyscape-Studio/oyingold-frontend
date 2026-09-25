@@ -8,8 +8,7 @@ import {
     useMemo,
     useState
 } from "react";
-import type {Session} from "@supabase/supabase-js";
-import {supabase} from "@/lib/supabase-client"
+import {useAuth} from "@/lib/auth-context";
 import {
     addCartItem,
     clearCart as clearCartRequest,
@@ -43,7 +42,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 
 export function CartProvider({children}:{children: React.ReactNode}){
-    const [session, setSession] = useState<Session | null>(null);
+    const {session, isLoggedIn, loading: authLoading} = useAuth();
     const [cart, setCart] = useState<Cart | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -68,38 +67,15 @@ export function CartProvider({children}:{children: React.ReactNode}){
 
 
     useEffect(() => {
-        let cancelled = false;
+        if (authLoading) return;
 
-
-        supabase.auth.getSession().then(({data}) => {
-            if(cancelled) return;
-            setSession(data.session);
-            if(data.session){
-                loadCart(data.session.access_token);
-            }else{
-                setLoading(false);
-            }
-        });
-
-
-        const {data: listener} = supabase.auth.onAuthStateChange((_event, newSession) => {
-            setSession(newSession);
-
-            if(newSession){
-                loadCart(newSession.access_token);
-            }else{
-                setCart(null);
-                setLoading(false);
-            }
-        });
-        
-        
-
-        return () => {
-            cancelled = true;
-            listener.subscription.unsubscribe();
+        if(session){
+            loadCart(session.access_token);
+        }else{
+            setCart(null);
+            setLoading(false);
         }
-    }, [loadCart]);
+    }, [session, authLoading, loadCart]);
 
 
 
@@ -195,7 +171,7 @@ export function CartProvider({children}:{children: React.ReactNode}){
             cart,
             itemCount: getCartItemCount(cart),
             loading,
-            isLoggedIn: !!session,
+            isLoggedIn,
             error,
             refreshCart,
             addItem,
@@ -203,7 +179,7 @@ export function CartProvider({children}:{children: React.ReactNode}){
             removeItem,
             clearCart
         }),
-        [cart, loading, session, error, refreshCart, addItem, updateItemQuantity, removeItem, clearCart]
+        [cart, loading, isLoggedIn, error, refreshCart, addItem, updateItemQuantity, removeItem, clearCart]
     );
 
 
