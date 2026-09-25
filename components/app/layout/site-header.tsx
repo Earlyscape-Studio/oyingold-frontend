@@ -5,7 +5,6 @@ import Image from "next/image"
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
     SearchIcon,
-    UserIcon,
     FavouriteIcon,
     ShoppingCart01Icon
 } from "@hugeicons/core-free-icons"
@@ -13,10 +12,10 @@ import {
     InputGroup,
     InputGroupAddon,
     InputGroupInput
-
 } from "@/components/ui/input-group"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context";
+import { AccountMenu } from "@/components/app/layout/account-menu";
 
 
 
@@ -71,10 +70,7 @@ export function SiteHeader() {
                 </form>
 
                 <nav className="flex shrink-0 items-center gap-5 text-sm">
-                    <Link href="/login" className="flex items-center gap-1.5 text-blue-950">
-                        <HugeiconsIcon icon={UserIcon} size={20} className="fill-blue-600" />
-                        <span className="hidden sm:inline">Login or Register</span>
-                    </Link>
+                    <AccountMenu />
 
                     <Link href="/wishlist" className="relative text-blue-950" aria-label="Wishlist">
                         <HugeiconsIcon icon={FavouriteIcon} size={20} className="fill-blue-600" />
