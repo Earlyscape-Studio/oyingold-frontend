@@ -5,6 +5,11 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {CartProvider} from "@/lib/cart-context"
+import {AuthProvider} from "@/lib/auth-context";
+
+
+
+
 
 const openSans = Open_Sans({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -25,9 +30,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <TooltipProvider>
+          <AuthProvider>
           <CartProvider>
           {children}
           </CartProvider>
+          </AuthProvider>
         </TooltipProvider>
         <Toaster />
       </body>
