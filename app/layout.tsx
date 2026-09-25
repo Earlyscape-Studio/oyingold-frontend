@@ -11,7 +11,19 @@ import {AuthProvider} from "@/lib/auth-context";
 
 
 
-const openSans = Open_Sans({ subsets: ['latin'], variable: '--font-sans' });
+// const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'});
+
+const openSans = Open_Sans({subsets:['latin'], variable: '--font-sans'});
+
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
+
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
 
 export const metadata: Metadata = {
   title: "Oyingold",
