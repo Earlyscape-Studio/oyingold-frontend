@@ -608,7 +608,7 @@ export async function getCart(accessToken: string): Promise<Cart> {
     });
 
 
-    if(res.ok){
+    if(!res.ok){
         throw new Error(`Failed to fetch cart ${res.status}`);
     }
 
@@ -624,7 +624,7 @@ export async function addCartItem(
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorize: `Bearer ${accessToken}`
+            Authorization: `Bearer ${accessToken}`
         },
         body: JSON.stringify(input)
     })
