@@ -19,6 +19,7 @@ import {
 import { formatNaira } from "@/lib/format";
 import { getCartItemUnitPrice, getCartTotal, type CartItem } from "@/lib/api";
 import { useCart } from "@/lib/cart-context";
+import {useAuth} from "@/lib/auth-context";
 
 
 
@@ -27,7 +28,7 @@ import { useCart } from "@/lib/cart-context";
 
 export function CartClient() {
     const { cart, loading, isLoggedIn, error, updateItemQuantity, removeItem, refreshCart } = useCart();
-
+    const {setAuthMenuOpen} = useAuth();
 
     const [localQuantities, setLocalQuantities] = useState<Record<string, number>>({});
     const [updating, setUpdating] = useState(false);
@@ -125,7 +126,7 @@ export function CartClient() {
                 <p className="text-sm text-muted-foreground">
                     Please log in to view your cart.
                 </p>
-                <Button asChild className="mt-4">
+                <Button asChild className="mt-4" onClic={() => setAuthMenuOpen(true)}>
                     <Link href="/login">Log in</Link>
                 </Button>
             </div>
