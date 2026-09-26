@@ -107,7 +107,7 @@ export function CartClient() {
 
     function handleApplyCoupon() {
         if (!couponCode.trim()) return;
-        toast.info("Coupons aren't avaialble yet.")
+        toast.info("Coupons aren't availble yet.")
     }
 
     function handleCheckout() {
@@ -126,7 +126,7 @@ export function CartClient() {
                 <p className="text-sm text-muted-foreground">
                     Please log in to view your cart.
                 </p>
-                <Button asChild className="mt-4" onClic={() => setAuthMenuOpen(true)}>
+                <Button asChild className="mt-4" onClick={() => setAuthMenuOpen(true)}>
                     <Link href="/login">Log in</Link>
                 </Button>
             </div>
