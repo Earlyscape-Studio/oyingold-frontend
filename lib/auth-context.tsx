@@ -35,6 +35,8 @@ type AuthContextValue = {
     signOut: () => Promise<void>;
     sendPasswordReset: (email: string) => Promise<ActionResult>;
     refreshUser: () => Promise<void>;
+    authMenuOpen: boolean;
+    setAuthMenuOpen: (open: boolean) => void;
 }
 
 
@@ -45,6 +47,7 @@ export function AuthProvider({children} : {children: React.ReactNode}){
     const [session, setSession] = useState<Session | null>(null);
     const [user, setUser] = useState<Me | null>(null);
     const [loading, setLoading] = useState(true);
+    const [authMenuOpen, setAuthMenuOpen] = useState(false);
 
 
 
@@ -79,6 +82,7 @@ export function AuthProvider({children} : {children: React.ReactNode}){
 
                 if(newSession){
                     loadUser(newSession.access_token);
+                    setAuthMenuOpen(false);
                 }else{
                     setUser(null);
                 }
@@ -171,9 +175,11 @@ export function AuthProvider({children} : {children: React.ReactNode}){
             signUp,
             signOut,
             sendPasswordReset,
-            refreshUser
+            refreshUser,
+            authMenuOpen,
+            setAuthMenuOpen
         }),
-        [session, user, loading, signIn, signUp, signOut, sendPasswordReset, refreshUser]
+        [session, user, loading, signIn, signUp, signOut, sendPasswordReset, refreshUser, authMenuOpen]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

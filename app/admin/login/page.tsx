@@ -45,13 +45,13 @@ export default function AdminLoginPage () {
     }
 
     return (
-        <div className="mx-auto max-w-sm px-4 py-16">
+        <div className="mx-auto max-w-sm px-4 py-40">
             <Card>
                 <CardHeader>
                     <CardTitle>Admin login</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-8">
                         {error && (
                             <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
                                 {error}
