@@ -192,6 +192,12 @@ export type CartItemInput = {
 }
 
 
+export type AdminUser = {
+    id: string;
+    email: string;
+    createdAt: string;
+}
+
 
 
 export async function getCategories(): Promise<Category[]> {
@@ -286,6 +292,21 @@ export async function createProduct (
 }
 
 
+export function hasValidPrice(price: string | null | undefined): price is string {
+    if (!price) return false;
+    const amount = parseFloat(price);
+    return Number.isFinite(amount) && amount > 0;
+}
+ 
+export function isVariantInStock(variant: ProductVariant): boolean {
+    return variant.stockLevel > 0;
+}
+
+
+export function isVariantPurchasable(variant: ProductVariant): boolean {
+    return isVariantInStock(variant) && hasValidPrice(variant.cartonPrice);
+}
+
 
 export function getStartingPrice(product:Product) : {amount: string; unit: "piece" | "carton"} | null {
 
@@ -294,7 +315,9 @@ export function getStartingPrice(product:Product) : {amount: string; unit: "piec
     let best: {amount: string; unit: "piece" | "carton"} | null = null;
 
     for (const v of product.variants) {
-      const candidate =  v.piecePrice
+      if(!isVariantPurchasable(v)) continue;
+
+      const candidate =  hasValidPrice(v.piecePrice)
         ? {amount: v.piecePrice, unit: "piece" as const}
         : {amount: v.cartonPrice, unit: "carton" as const};
 
@@ -707,4 +730,41 @@ export async function clearCart(
     }
 
     return {ok: true};
+}
+
+
+export async function getAdmins(accessToken: string): Promise<AdminUser[]> {
+    const res = await fetch(`${API_URL}/admin/users`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        cache: "no-store"
+    });
+ 
+    if(!res.ok) return [];
+ 
+    return res.json();
+}
+ 
+ 
+export async function inviteAdmin(
+    email: string,
+    accessToken: string
+): Promise<{ok: true; admin: AdminUser} | {ok: false; error: string}> {
+    const res = await fetch(`${API_URL}/admin/users`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({email})
+    });
+ 
+    const data = await res.json().catch(() => null);
+ 
+    if(!res.ok){
+        return {ok: false, error: data?.error ?? "Failed to add admin"};
+    }
+ 
+    return {ok: true, admin: data};
 }

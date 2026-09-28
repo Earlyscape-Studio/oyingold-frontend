@@ -57,4 +57,28 @@ describe("ProductCard", () => {
         render(<ProductCard product={product}/>)
         expect(screen.getByText("Vegetable Oil")).toBeInTheDocument()
     })
+
+    it("disables Add to cart and shows an unavailable message for a zero-priced, out-of-stock variant", () => {
+        const unavailableProduct: Product = {
+            ...product,
+            variants: [
+                {
+                    id: "v1",
+                    productId: "1",
+                    sku: "DK-VO-750ML-12",
+                    unitLabel: "750 ml",
+                    unitsPerCarton: 12,
+                    cartonPrice: "0",
+                    piecePrice: null,
+                    stockLevel: 0,
+                    lowStockThreshold: 2
+                }
+            ]
+        };
+
+        render(<ProductCard product={unavailableProduct} />)
+
+        expect(screen.getByText("Currently unavailable")).toBeInTheDocument()
+        expect(screen.getByText("ADD TO CART").closest("button")).toBeDisabled()
+    })
 })

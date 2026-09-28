@@ -10,6 +10,7 @@ import {
     ShoppingCart01Icon,
     Tag01Icon,
     Store01Icon,
+    UserGroupIcon,
     Logout03Icon
  } from "@hugeicons/core-free-icons";
  import {
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
     { href: "/admin/orders", label: "Orders", icon: ShoppingCart01Icon },
     { href: "/admin/categories", label: "Categories", icon: Tag01Icon },
     { href: "/admin/brands", label: "Brands", icon: Store01Icon },
+    { href: "/admin/admins", label: "Admins", icon: UserGroupIcon },
 ]
 
 
