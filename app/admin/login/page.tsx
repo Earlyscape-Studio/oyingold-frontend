@@ -124,7 +124,7 @@ export default function AdminLoginPage() {
     }
 
     return (
-        <div className="mx-auto max-w-sm px-4 py-16">
+        <div className="mx-auto max-w-sm px-4 py-40">
             <Card>
                 <CardHeader>
                     <CardTitle>Admin login</CardTitle>
