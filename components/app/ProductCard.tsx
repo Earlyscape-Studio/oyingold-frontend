@@ -102,7 +102,7 @@ export function ProductCard({ product }: { product: Product }) {
                         </span>
                     </p>
                 ) : (
-                    <p className="mt-1.5 text-sm text-muted-foreground">No pricing yet</p>
+                    <p className="mt-1.5 text-sm text-muted-foreground">Currently Unavailable</p>
                 )}
 
                 <div className="mt-3 flex items-center gap-2">

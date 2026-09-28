@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ProductVariant, PricingType } from "@/lib/api";
+import { hasValidPrice } from "@/lib/api";
 import { formatNaira } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -39,7 +40,10 @@ export function VariantSelector({ variants }: { variants: ProductVariant[] }) {
     const outOfStock = selected.stockLevel <= 0;
     const lowStock = !outOfStock && selected.stockLevel <= selected.lowStockThreshold;
 
-    const canSellByPiece = !!selected.piecePrice;
+    const priceUnavailable = !hasValidPrice(selected.cartonPrice);
+    const canSellByPiece = hasValidPrice(selected.piecePrice);
+    const unavailable = outOfStock || priceUnavailable;
+
 
     async function handleAddToCart() {
         setSubmitting(true);
@@ -90,25 +94,30 @@ export function VariantSelector({ variants }: { variants: ProductVariant[] }) {
             </div>
 
             <div className="mt-4 space-y-1">
-                <p className="text-2xl font-bold">
-                    {formatNaira(selected.cartonPrice)}
-                    <span className="ml-1 text-sm font-normal text-muted-foreground">
-                        / carton of {selected.unitsPerCarton}
-                    </span>
-                </p>
-                {selected.piecePrice ? (
-                    <p className="text-sm text-muted-foreground">
-                        {formatNaira(selected.piecePrice)} / piece
+                {priceUnavailable ? (
+                    <p className="text-lg font-medium text-muted-foreground">
+                        Price coming soon
                     </p>
-                )
-                    :
-                    (
-                        <p className="text-sm text-muted-foreground">sold by carton ony </p>
-                    )
-                }
+                ) : (
+                    <>
+                        <p className="text-2xl font-bold">
+                            {formatNaira(selected.cartonPrice)}
+                            <span className="ml-1 text-sm font-normal text-muted-foreground">
+                                / carton of {selected.unitsPerCarton}
+                            </span>
+                        </p>
+                        {hasValidPrice(selected.piecePrice) ? (
+                            <p className="text-sm text-muted-foreground">
+                                {formatNaira(selected.piecePrice)} / piece
+                            </p>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">sold by carton only</p>
+                        )}
+                    </>
+                )}
             </div>
 
-            {canSellByPiece && (
+            {canSellByPiece && !priceUnavailable && (
                 <div className="mt-4 flex flex-wrap gap-2">
                     <Button
                         type="button"
@@ -158,12 +167,18 @@ export function VariantSelector({ variants }: { variants: ProductVariant[] }) {
             </div>
 
             <Button
-                disabled={outOfStock || submitting}
+                disabled={unavailable || submitting}
                 onClick={handleAddToCart}
                 className="mt-6 w-full"
             >
-                {outOfStock ? "Out of stock" : submitting ? "Adding…" : "Add to cart"}
+                {outOfStock
+                    ? "Out of stock"
+                    : priceUnavailable
+                        ? "Price coming soon"
+                        : submitting
+                            ? "Adding…"
+                            : "Add to cart"}
             </Button>
         </div>
-    )
+    );
 }
