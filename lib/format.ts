@@ -7,3 +7,7 @@ export function formatNaira(value: string | number): string {
   }).format(num);
 }
  
+
+export function getEmailDisplayName(email: string): string {
+  return email.split("@")[0];
+}
