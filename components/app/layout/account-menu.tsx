@@ -13,6 +13,7 @@ import {
     PopoverContent,
     PopoverTrigger
 } from "@/components/ui/popover";
+import { getEmailDisplayName } from "@/lib/format";
 
 
 
@@ -22,7 +23,7 @@ type View = "sign-in" | "sign-up" | "sign-up-sent" | "forgot-password" | "forgot
 
 export function AccountMenu() {
     const { isLoggedIn, user, session, signOut, authMenuOpen, setAuthMenuOpen } = useAuth();
-    
+
 
 
     return (
@@ -35,7 +36,11 @@ export function AccountMenu() {
                 >
                     <HugeiconsIcon icon={UserIcon} size={20} className="fill-blue-600" />
                     <span className="hidden sm:inline">
-                        {isLoggedIn ? (session?.user.email ?? "Account") : "Login or Register"}
+                        {isLoggedIn
+                            ? (session?.user.email
+                                ? getEmailDisplayName(session.user.email)
+                                : "Account")
+                            : "Login or Register"}
                     </span>
                 </button>
             </PopoverTrigger>
@@ -71,7 +76,7 @@ function SignedInPanel({
     return (
         <div className="space-y-4">
             <div>
-                <p className="text-sm font-medium text-foreground">{email}</p>
+                <p className="text-sm font-medium text-foreground">{email ? getEmailDisplayName(email) : "Account"}</p>
                 {role && (
                     <p className="text-xs text-muted-foreground">{role.toLowerCase()}</p>
                 )}
