@@ -32,12 +32,12 @@ const slides: Slide[] = [
     image: "/images/Products.png",
     imageAlt: "Bottles and cartons of Goldwealth palm and vegetable oil",
   },
-  {
-    title: "80% Off Great Deals For You",
-    ctaLabel: "Shop Now",
-    ctaHref: "/products",
-    className: "bg-gradient-to-br from-blue-950 to-blue-900 text-white",
-  },
+  // {
+  //   title: "80% Off Great Deals For You",
+  //   ctaLabel: "Shop Now",
+  //   ctaHref: "/products",
+  //   className: "bg-gradient-to-br from-blue-950 to-blue-900 text-white",
+  // },
 ]
 
 function useCarouselIndex(api: CarouselApi | undefined) {
@@ -55,6 +55,7 @@ function useCarouselIndex(api: CarouselApi | undefined) {
     () => 0
   )
 }
+
 
 export function HeroCarousel() {
   const [api, setApi] = React.useState<CarouselApi>()
