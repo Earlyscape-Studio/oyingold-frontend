@@ -98,7 +98,7 @@ export function HeroCarousel() {
                       alt={slide.imageAlt ?? ""}
                       fill
                       priority={i === 0}
-                      className="object-contain"
+                      className="object-contain scale-120"
                       sizes="(max-width: 640px) 0px, 50vw"
                     />
                   </div>
