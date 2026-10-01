@@ -43,6 +43,10 @@ export type Me = {
     id: string;
     email: string;
     role: "ADMIN" | "CUSTOMER";
+    fullName: string | null;
+    phone: string | null;
+    memberSince: string;
+    totalOrders: number;
 }
 
 export type DashboardStats = {
@@ -147,6 +151,55 @@ export type Order = {
         email: string;
     };
     items: OrderItemDetail[];
+}
+
+//---- Customer account (GET /me/orders, GET /me/addresses) ----
+
+export type ShippingAddress = {
+    fullName: string;
+    phone: string;
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+}
+
+export type CustomerOrderItem = {
+    id: string;
+    productId: string;
+    name: string;
+    unitLabel: string;
+    image: string | null;
+    pricingType: "carton" | "piece";
+    unitPrice: number;
+    quantity: number;
+}
+
+export type CustomerOrder = {
+    id: string;
+    reference: string;
+    status: OrderStatus;
+    // 1-5 position on the tracker, null for cancelled orders
+    step: number | null;
+    total: number;
+    trackingNumber: string | null;
+    shippingAddress: ShippingAddress | null;
+    createdAt: string;
+    items: CustomerOrderItem[];
+}
+
+export type PaginatedOrders = {
+    data: CustomerOrder[];
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+}
+
+export type SavedAddress = ShippingAddress & {
+    id: string;
+    isDefault: boolean;
+    isLastUsed: boolean;
 }
 
 export type UpdateOrderInput = {
@@ -767,4 +820,46 @@ export async function inviteAdmin(
     }
  
     return {ok: true, admin: data};
+}
+
+
+
+//-------------------------Customer account----------------------
+
+export async function getMyOrders(
+    accessToken: string,
+    params: {page?: number; limit?: number} = {}
+): Promise<PaginatedOrders> {
+    const url = new URL(`${API_URL}/me/orders`);
+    if (params.page) url.searchParams.set("page", String(params.page));
+    if (params.limit) url.searchParams.set("limit", String(params.limit));
+
+    const res = await fetch(url.toString(), {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        cache: "no-store"
+    });
+
+    if(!res.ok){
+        throw new Error(`Failed to fetch your orders, ${res.status}`);
+    }
+
+    return res.json();
+}
+
+
+export async function getMyAddresses(accessToken: string): Promise<SavedAddress[]> {
+    const res = await fetch(`${API_URL}/me/addresses`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        cache: "no-store"
+    });
+
+    if(!res.ok){
+        throw new Error(`Failed to fetch your addresses, ${res.status}`);
+    }
+
+    return res.json();
 }

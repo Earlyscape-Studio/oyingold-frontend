@@ -48,7 +48,8 @@ export default function HomePage() {
       </Suspense>
 
       <PromoBanner
-        title="80% Off Great Deals For You"
+        title="80% Off"
+        subtitle="Great Deals For You"
         ctaLabel="Shop Now"
         ctaHref="/products"
         variant="dark"

@@ -1,71 +1,145 @@
 import Link from "next/link";
+import Image from "next/image";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+    YoutubeIcon,
+    Facebook01Icon,
+    InstagramIcon,
+} from "@hugeicons/core-free-icons";
+import { NewsletterForm } from "./newsletter-form";
+
+
+// NOTE: only /products exists right now. The rest are planned routes.
+const LINK_COLUMNS = [
+    {
+        heading: "Company",
+        links: [
+            { label: "About", href: "/about" },
+            { label: "Shop", href: "/products" },
+            { label: "Contact", href: "/contact" },
+            { label: "Career", href: "/careers" },
+        ],
+    },
+    {
+        heading: "Help",
+        links: [
+            { label: "Customer Support", href: "/contact" },
+            { label: "Delivery Details", href: "/delivery" },
+            { label: "Terms & Conditions", href: "/terms" },
+            { label: "Privacy Policy", href: "/privacy" },
+        ],
+    },
+    {
+        heading: "FAQ",
+        links: [
+            { label: "Account", href: "/account" },
+            { label: "Manage Deliveries", href: "/account/deliveries" },
+            { label: "Orders", href: "/orders" },
+            { label: "Payments", href: "/payments" },
+        ],
+    },
+];
+
+const SOCIALS = [
+    { label: "YouTube", href: "#", icon: YoutubeIcon },
+    { label: "Facebook", href: "#", icon: Facebook01Icon },
+    { label: "Instagram", href: "#", icon: InstagramIcon },
+];
+
+// Placeholder badges. Swap for the official SVGs when you have them.
+const PAYMENT_BADGES = [
+    { label: "VISA", className: "italic text-blue-800" },
+    { label: "Mastercard", className: "text-orange-600" },
+    { label: "PayPal", className: "text-sky-700" },
+    { label: "Apple Pay", className: "text-neutral-900" },
+    { label: "G Pay", className: "text-neutral-700" },
+];
 
 
 export function SiteFooter() {
     return (
         <footer className="mt-16">
-            <div className="bg-red-600 py-6">
-                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-                    <p className="text-center text-lg font-bold text-white sm:text-left">
-                        SIGN UP TODAY AND GET
+            {/* Newsletter card: sits half on the page, half on the navy footer */}
+            <div className="relative px-4">
+                <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-brand-navy" />
+                <div className="relative mx-auto flex max-w-7xl flex-col gap-6 rounded-2xl bg-promo-red px-6 py-8 sm:px-12 md:flex-row md:items-center md:justify-between">
+                    <h2 className="text-3xl font-extrabold uppercase leading-tight text-white sm:text-4xl">
+                        Stay up to date about
                         <br />
-                        10% DISCOUNT OFF
-                    </p>
-                    <form className="flex w-full max-w-sm gap-2 sm:w-auto">
-                        <input
-                            type="email"
-                            placeholder="Enter your email address"
-                            className="w-full rounded-md px-3 py-2 text-sm outline-none"
-                        />
-                        <button
-                            type="submit"
-                            className="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-red-600"
-                        >
-                            Subscribe
-                        </button>
-                    </form>
+                        our latest offers
+                    </h2>
+                    <NewsletterForm />
                 </div>
             </div>
 
-            <div className="bg-blue-950 px-4 py-10 text-blue-100">
-                <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 sm:grid-cols-4">
-                    <div className="col-span-2 sm:col-span-1">
-                        <p className="text-lg font-bold text-white">OYINGOLD RETAIL</p>
-                        <p className="mt-2 text-sm text-blue-200">
-                            We have fresh, quality ingredients and food items that delight
-                            your taste buds and nourish your body.
+            <div className="bg-brand-navy px-4 pb-8 pt-12 text-white">
+                <div className="mx-auto max-w-6xl">
+                    <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+                        <div>
+                            <Link href="/" className="flex items-center gap-2">
+                                <Image
+                                    src="/images/Logo-pic.svg"
+                                    alt=""
+                                    width={40}
+                                    height={43}
+                                    className="h-10 w-auto"
+                                />
+                                <span className="flex flex-col leading-none">
+                                    <span className="text-lg font-bold tracking-wide text-white">OYINGOLD</span>
+                                    <span className="mt-1 text-[10px] font-semibold tracking-[0.3em] text-brand-red">RETAIL</span>
+                                </span>
+                            </Link>
+                            <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/70">
+                                We have fresh, quality ingredients and food items that delight
+                                your taste buds and nourish your body.
+                            </p>
+                            <div className="mt-5 flex items-center gap-2">
+                                {SOCIALS.map(({ label, href, icon }) => (
+                                    <a
+                                        key={label}
+                                        href={href}
+                                        aria-label={label}
+                                        className="flex size-7 items-center justify-center rounded-full bg-brand-red text-white transition hover:opacity-80"
+                                    >
+                                        <HugeiconsIcon icon={icon} size={14} />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+
+                        {LINK_COLUMNS.map((col) => (
+                            <nav key={col.heading} aria-label={col.heading}>
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-red">
+                                    {col.heading}
+                                </p>
+                                <ul className="mt-5 space-y-3 text-sm text-white/70">
+                                    {col.links.map((l) => (
+                                        <li key={l.label}>
+                                            <Link href={l.href} className="transition hover:text-white">
+                                                {l.label}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </nav>
+                        ))}
+                    </div>
+
+                    <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/20 pt-6 sm:flex-row">
+                        <p className="text-xs text-white/70">
+                            Oyingold Retail © {new Date().getFullYear()}, All Rights Reserved
                         </p>
-                    </div>
-
-                    <div>
-                        <p className="text-xs font-semibold tracking-wide text-red-400">COMPANY</p>
-                        <ul className="mt-3 space-y-2 text-sm">
-                            <li><Link href="/about">About</Link></li>
-                            <li><Link href="/products">Shop</Link></li>
-                            <li><Link href="/contact">Contact</Link></li>
+                        <ul className="flex flex-wrap items-center justify-center gap-2">
+                            {PAYMENT_BADGES.map((b) => (
+                                <li
+                                    key={b.label}
+                                    className={`flex h-7 min-w-12 items-center justify-center rounded-md bg-white px-2 text-[10px] font-bold ${b.className}`}
+                                >
+                                    {b.label}
+                                </li>
+                            ))}
                         </ul>
                     </div>
-
-                    <div>
-                        <p className="text-xs font-semibold tracking-wide text-red-400">HELP</p>
-                        <ul className="mt-3 space-y-2 text-sm">
-                            <li><Link href="/contact">Customer Support</Link></li>
-                            <li><Link href="/terms">Terms & Conditions</Link></li>
-                            <li><Link href="/privacy">Privacy Policy</Link></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <p className="text-xs font-semibold tracking-wide text-red-400">FAQ</p>
-                        <ul className="mt-3 space-y-2 text-sm">
-                            <li><Link href="/orders">Orders</Link></li>
-                            <li><Link href="/wishlist">Wishlist</Link></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="mx-auto mt-8 max-w-6xl border-t border-blue-800 pt-4 text-xs text-blue-300">
-                    Oyingold Retail © {new Date().getFullYear()}, All Rights Reserved
                 </div>
             </div>
         </footer>
