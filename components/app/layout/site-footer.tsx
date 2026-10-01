@@ -6,6 +6,8 @@ import {
     Facebook01Icon,
     InstagramIcon,
 } from "@hugeicons/core-free-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCcVisa, faCcMastercard } from "@fortawesome/free-brands-svg-icons";
 import { NewsletterForm } from "./newsletter-form";
 
 
@@ -48,11 +50,8 @@ const SOCIALS = [
 
 // Placeholder badges. Swap for the official SVGs when you have them.
 const PAYMENT_BADGES = [
-    { label: "VISA", className: "italic text-blue-800" },
-    { label: "Mastercard", className: "text-orange-600" },
-    { label: "PayPal", className: "text-sky-700" },
-    { label: "Apple Pay", className: "text-neutral-900" },
-    { label: "G Pay", className: "text-neutral-700" },
+    { label: "Visa", icon: faCcVisa },
+    { label: "Mastercard", icon: faCcMastercard },
 ];
 
 
@@ -129,13 +128,13 @@ export function SiteFooter() {
                         <p className="text-xs text-white/70">
                             Oyingold Retail © {new Date().getFullYear()}, All Rights Reserved
                         </p>
-                        <ul className="flex flex-wrap items-center justify-center gap-2">
+                        <ul className="flex flex-wrap items-center justify-center gap-3">
                             {PAYMENT_BADGES.map((b) => (
-                                <li
-                                    key={b.label}
-                                    className={`flex h-7 min-w-12 items-center justify-center rounded-md bg-white px-2 text-[10px] font-bold ${b.className}`}
-                                >
-                                    {b.label}
+                                <li key={b.label}>
+                                    <FontAwesomeIcon
+                                        icon={b.icon}
+                                        className="h-7 w-auto text-white"
+                                    />
                                 </li>
                             ))}
                         </ul>
