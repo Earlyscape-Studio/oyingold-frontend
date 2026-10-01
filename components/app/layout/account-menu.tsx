@@ -2,6 +2,7 @@
 
 
 import { useState } from "react";
+import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { UserIcon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@/lib/auth-context";
@@ -50,6 +51,7 @@ export function AccountMenu() {
                     <SignedInPanel
                         email={session?.user.email ?? null}
                         role={user?.role ?? null}
+                        onNavigate={() => setAuthMenuOpen(false)}
                         onSignOut={async () => {
                             await signOut()
                             setAuthMenuOpen(false)
@@ -67,10 +69,12 @@ export function AccountMenu() {
 function SignedInPanel({
     email,
     role,
+    onNavigate,
     onSignOut
 }: {
     email: string | null;
     role: string | null;
+    onNavigate: () => void;
     onSignOut: () => void;
 }) {
     return (
@@ -81,6 +85,13 @@ function SignedInPanel({
                     <p className="text-xs text-muted-foreground">{role.toLowerCase()}</p>
                 )}
             </div>
+            <Link
+                href="/account"
+                onClick={onNavigate}
+                className="block text-sm font-medium text-blue-950 hover:underline"
+            >
+                My Account
+            </Link>
             <Button variant="outline" className="w-full" onClick={onSignOut}>
                 Sign out
             </Button>

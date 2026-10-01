@@ -6,11 +6,13 @@ import type { Product } from "@/lib/api";
 export function ProductSection({
     title,
     viewAllHref,
-    products
+    products,
+    showNewBadge = false,
 }: {
     title: string
     viewAllHref: string
     products: Product[]
+    showNewBadge?: boolean
 }) {
     return (
         <section className="mx-auto max-w-6xl px-4 py-10">
@@ -22,7 +24,7 @@ export function ProductSection({
             </div>
             <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {products.map((p) => (
-                    <ProductCard key={p.id} product={p} />
+                    <ProductCard key={p.id} product={p} showNewBadge={showNewBadge} />
                 ))}
             </div>
         </section>
