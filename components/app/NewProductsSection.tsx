@@ -1,5 +1,5 @@
-import {getProducts} from "@/lib/api";
-import {ProductSection} from "./ProductSection";
+import { getProducts } from "@/lib/api";
+import { ProductSection } from "./ProductSection";
 
 
 export async function NewProductsSection() {
@@ -8,5 +8,12 @@ export async function NewProductsSection() {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
 
-    return <ProductSection title="New Products" viewAllHref="/products" products={sorted.slice(0, 8)} />
+    return (
+        <ProductSection
+            title="New Products"
+            viewAllHref="/products"
+            products={sorted.slice(0, 8)}
+            showNewBadge
+        />
+    )
 }
