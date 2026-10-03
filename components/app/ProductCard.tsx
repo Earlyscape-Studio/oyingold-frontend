@@ -18,7 +18,13 @@ import { ShoppingCart01Icon, FavouriteIcon, Image01Icon } from "@hugeicons/core-
 
 
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+    product,
+    showNewBadge = false,
+}: {
+    product: Product
+    showNewBadge?: boolean
+}) {
 
     const { addItem } = useCart();
     const { setAuthMenuOpen } = useAuth();
@@ -70,6 +76,20 @@ export function ProductCard({ product }: { product: Product }) {
 
     return (
         <div className="group relative flex flex-col overflow-hidden rounded-lg border">
+            {showNewBadge && (
+                <>
+                    {/* Diagonal corner ribbon. Clipped by the card's overflow-hidden. */}
+                    <div
+                        aria-hidden
+                        className="pointer-events-none absolute right-0 top-0 z-10 size-20 overflow-hidden"
+                    >
+                        <span className="absolute right-[-30px] top-[14px] w-[110px] rotate-45 bg-brand-red py-1 text-center text-[11px] font-semibold text-white shadow-sm">
+                            New
+                        </span>
+                    </div>
+                    <span className="sr-only">New product</span>
+                </>
+            )}
             <Link href={`/products/${product.id}`} className="block">
                 <div className="relative aspect-square w-full bg-muted">
                     {image ? (
