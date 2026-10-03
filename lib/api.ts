@@ -692,27 +692,51 @@ export async function getCart(accessToken: string): Promise<Cart> {
 }
 
 
+// Cart requests never throw: network failures and non-JSON error bodies
+// (e.g. a plain-text 500) come back as {ok: false, error} so the UI can recover.
+async function cartRequest(
+    url: string,
+    init: RequestInit,
+    fallbackError: string
+): Promise<{ok: true, cart: Cart} | {ok: false, error: string}> {
+    let res: Response;
+
+    try{
+        res = await fetch(url, init);
+    }catch{
+        return {ok: false, error: "Couldn't reach the server. Check your connection and try again."};
+    }
+
+    const data = await res.json().catch(() => null);
+
+    if(!res.ok){
+        return {ok: false, error: data?.error ?? fallbackError};
+    }
+
+    if(!data){
+        return {ok: false, error: fallbackError};
+    }
+
+    return {ok: true, cart: data};
+}
+
+
 export async function addCartItem(
     input: CartItemInput,
     accessToken: string
 ): Promise<{ok: true, cart: Cart} | {ok: false, error: string}> {
-    const res = await fetch(`${API_URL}/cart/items`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
+    return cartRequest(
+        `${API_URL}/cart/items`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(input)
         },
-        body: JSON.stringify(input)
-    })
-
-    const data = await res.json();
-
-
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? "Failed to add item to cart"};
-    }
-
-    return {ok: true, cart: data};
+        "Failed to add item to cart"
+    );
 }
 
 
@@ -721,23 +745,18 @@ export async function updateCartItemQuantity(
     quantity: number,
     accessToken: string
 ): Promise<{ok: true, cart: Cart} | {ok: false, error: string}>{
-    const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
+    return cartRequest(
+        `${API_URL}/cart/items/${itemId}`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({quantity})
         },
-        body: JSON.stringify({quantity})
-    });
-
-    const data = await res.json();
-
-
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? "Failed to update cart item"}
-    }
-
-    return {ok: true, cart: data};
+        "Failed to update cart item"
+    );
 }
 
 
@@ -747,21 +766,16 @@ export async function removeCartItem(
     itemId: string,
     accessToken: string
 ): Promise<{ok: true, cart: Cart} | {ok: false, error: string}> {
-    const res = await fetch(`${API_URL}/cart/items/${itemId}`, {
-        method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        }
-    });
-
-
-    const data = await res.json()
-
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? "Failed to remove cart item"}
-    }
-
-    return {ok: true, cart: data}
+    return cartRequest(
+        `${API_URL}/cart/items/${itemId}`,
+        {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        },
+        "Failed to remove cart item"
+    );
 }
 
 

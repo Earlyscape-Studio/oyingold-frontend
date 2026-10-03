@@ -12,6 +12,13 @@ vi.mock("next/navigation", () => ({
 }))
 
 
+vi.mock("@/lib/auth-context", () => ({
+    useAuth: () => ({
+        setAuthMenuOpen: vi.fn()
+    })
+}))
+
+
 vi.mock("@/lib/cart-context", () => ({
     useCart: () => ({
         addItem: vi.fn()
