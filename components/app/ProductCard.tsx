@@ -5,11 +5,11 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/api";
 import { getStartingPrice } from "@/lib/api";
 import { formatNaira } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ShoppingCart01Icon, FavouriteIcon, Image01Icon } from "@hugeicons/core-free-icons";
 // import {Card, CardContent} from "@/components/ui/card";
@@ -26,8 +26,8 @@ export function ProductCard({
     showNewBadge?: boolean
 }) {
 
-    const router = useRouter();
     const { addItem } = useCart();
+    const { setAuthMenuOpen } = useAuth();
     const [adding, setAdding] = useState(false);
 
     const price = getStartingPrice(product);
@@ -49,26 +49,29 @@ export function ProductCard({
 
         setAdding(true);
 
-        const result = await addItem({
-            productVariantId: variant.id,
-            pricingType: price.unit,
-            quantity: 1,
-        });
+        try {
+            const result = await addItem({
+                productVariantId: variant.id,
+                pricingType: price.unit,
+                quantity: 1,
+            });
 
-        setAdding(false);
-
-
-        if (!result.ok) {
-            if (result.error.toLowerCase().includes("logged in")) {
-                toast.error("Please log in to add items to your cart.");
-                router.push("/login") //TODO: again don't forget to alter this to trigger a modal instead.
+            if (!result.ok) {
+                if (result.error.toLowerCase().includes("logged in")) {
+                    toast.error("Please log in to add items to your cart.");
+                    setAuthMenuOpen(true);
+                    return;
+                }
+                toast.error(result.error);
                 return;
             }
-            toast.error(result.error);
-            return;
-        }
 
-        toast.success("Added to cart")
+            toast.success("Added to cart");
+        } catch {
+            toast.error("Something went wrong. Please try again.");
+        } finally {
+            setAdding(false);
+        }
     }
 
     return (

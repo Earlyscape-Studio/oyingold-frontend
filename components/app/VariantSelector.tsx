@@ -2,7 +2,6 @@
 
 
 import { useState } from "react"
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ProductVariant, PricingType } from "@/lib/api";
 import { hasValidPrice } from "@/lib/api";
@@ -11,13 +10,14 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 
 
 
 export function VariantSelector({ variants }: { variants: ProductVariant[] }) {
 
-    const router = useRouter();
     const { addItem } = useCart();
+    const { setAuthMenuOpen } = useAuth();
 
 
     const [selectedId, setSelectedId] = useState(variants[0]?.id);
@@ -48,29 +48,30 @@ export function VariantSelector({ variants }: { variants: ProductVariant[] }) {
     async function handleAddToCart() {
         setSubmitting(true);
 
+        try {
+            const result = await addItem({
+                productVariantId: selected.id,
+                pricingType,
+                quantity
+            })
 
-        const result = await addItem({
-            productVariantId: selected.id,
-            pricingType,
-            quantity
-        })
+            if (!result.ok) {
+                if (result.error.toLowerCase().includes("logged in")) {
+                    toast.error("Please log in to add items to your cart.");
+                    setAuthMenuOpen(true);
+                    return;
+                }
 
-
-        setSubmitting(false);
-
-        if (!result.ok) {
-            if (result.error.toLowerCase().includes("logged in")) {
-                toast.error("Please login to add items to your cart.");
-                router.push("/login")  //TODO: Change later to accomdate authentication modal.
+                toast.error(result.error);
                 return;
             }
 
-            toast.error(result.error);
-            return;
+            toast.success("Added to cart.");
+        } catch {
+            toast.error("Something went wrong. Please try again.");
+        } finally {
+            setSubmitting(false);
         }
-
-
-        toast.success("Added to cart.");
     }
 
 
@@ -147,7 +148,7 @@ export function VariantSelector({ variants }: { variants: ProductVariant[] }) {
                     type="number"
                     min={1}
                     value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+                    onChange={(e) => setQuantity(Math.max(1, Math.floor(Number(e.target.value)) || 1))}
                     className="w-20"
                 />
             </div>
