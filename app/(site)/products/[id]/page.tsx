@@ -5,6 +5,7 @@ import { VariantSelector } from "@/components/app/VariantSelector";
 import { getProduct } from "@/lib/api";
 import { RelatedProducts } from "@/components/app/RelatedProducts";
 import { ProductImageGallery } from "@/components/app/ProductImageGallery";
+import { WishlistButton } from "@/components/app/WishlistButton";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductCardSkeleton } from "@/components/app/ProductCardSkeleton";
@@ -37,7 +38,10 @@ export default async function ProductDetailPage({
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                         {product.brand.name} · {product.category.name}
                     </p>
-                    <h1 className="mt-1 text-2xl font-bold text-blue-950">{product.name}</h1>
+                    <div className="mt-1 flex items-start justify-between gap-3">
+                        <h1 className="text-2xl font-bold text-blue-950">{product.name}</h1>
+                        <WishlistButton productId={product.id} className="mt-1 h-9 w-9" size={18} />
+                    </div>
                     {product.description && (
                         <p className="mt-3 text-sm text-muted-foreground">{product.description}</p>
                     )}
