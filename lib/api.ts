@@ -393,7 +393,7 @@ export async function deleteProduct(
     accessToken: string,
 ): Promise<{ok: true} | {ok: false; error: string}>{
 
-    const res = await fetch(`${API_URL}/product/${id}`, {
+    const res = await fetch(`${API_URL}/products/${id}`, {
         method: "DELETE",
         headers: {
             Authorization: `Bearer ${accessToken}`
@@ -440,7 +440,7 @@ export async function updateProductVariant(
     input: UpdateVariantInput,
     accessToken: string
 ): Promise<{ok: true; variant: ProductVariant} | {ok: false, error: string}>{
-    const res = await fetch(`${API_URL}/products/%${productId}/variants/${variantId}`,{
+    const res = await fetch(`${API_URL}/products/${productId}/variants/${variantId}`,{
         method: "PATCH",
         headers:{
             "Content-Type": "application/json",
