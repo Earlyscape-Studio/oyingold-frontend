@@ -4,17 +4,12 @@ import Link from "next/link";
 import Image from "next/image"
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-    SearchIcon,
     FavouriteIcon,
     ShoppingCart01Icon
 } from "@hugeicons/core-free-icons"
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput
-} from "@/components/ui/input-group"
-import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
+import { SearchBox } from "@/components/app/layout/SearchBox";
 import { AccountMenu } from "@/components/app/layout/account-menu";
 
 
@@ -22,6 +17,7 @@ import { AccountMenu } from "@/components/app/layout/account-menu";
 
 export function SiteHeader() {
     const { itemCount } = useCart();
+    const { count: wishlistCount } = useWishlist();
 
 
     return (
@@ -46,28 +42,7 @@ export function SiteHeader() {
                     />
                 </Link>
 
-                <form action="/products" className="flex-1">
-                    {/* <div className="flex items-center overflow-hidden rounded-md border"> */}
-                    <InputGroup className="flex items-center rounded-4xl w-full">
-                        <InputGroupInput
-                            type="search"
-                            name="q"
-                            placeholder="Search anything..."
-                            className="w-full py-2 text-sm"
-                        />
-                        <InputGroupAddon align="inline-end" className="flex items-center justify-end">
-                            <Button
-                                type="submit"
-                                variant="outline"
-                                aria-label="Search"
-                                className="h-8 w-8 bg-red-600 text-white rounded-full hover:bg-red-300"
-                            >
-                                <HugeiconsIcon icon={SearchIcon} size={18} />
-                            </Button>
-                        </InputGroupAddon>
-                    </InputGroup>
-                    {/* </div> */}
-                </form>
+                <SearchBox />
 
                 <nav className="flex shrink-0 items-center gap-5 text-sm">
                     <AccountMenu />
@@ -75,7 +50,7 @@ export function SiteHeader() {
                     <Link href="/wishlist" className="relative text-blue-950" aria-label="Wishlist">
                         <HugeiconsIcon icon={FavouriteIcon} size={20} className="fill-blue-600" />
                         <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] text-white">
-                            0
+                            {wishlistCount}
                         </span>
                     </Link>
 

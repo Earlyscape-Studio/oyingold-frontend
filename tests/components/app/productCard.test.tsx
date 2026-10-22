@@ -14,7 +14,17 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/auth-context", () => ({
     useAuth: () => ({
+        isLoggedIn: false,
         setAuthMenuOpen: vi.fn()
+    })
+}))
+
+
+vi.mock("@/lib/wishlist-context", () => ({
+    useWishlist: () => ({
+        isWishlisted: () => false,
+        isPending: () => false,
+        toggle: vi.fn()
     })
 }))
 
