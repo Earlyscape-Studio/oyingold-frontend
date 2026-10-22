@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {CartProvider} from "@/lib/cart-context"
+import {WishlistProvider} from "@/lib/wishlist-context";
 import {AuthProvider} from "@/lib/auth-context";
 
 
@@ -44,7 +45,9 @@ export default function RootLayout({
         <TooltipProvider>
           <AuthProvider>
           <CartProvider>
+          <WishlistProvider>
           {children}
+          </WishlistProvider>
           </CartProvider>
           </AuthProvider>
         </TooltipProvider>

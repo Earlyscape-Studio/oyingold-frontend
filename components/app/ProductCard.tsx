@@ -11,7 +11,8 @@ import { formatNaira } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ShoppingCart01Icon, FavouriteIcon, Image01Icon } from "@hugeicons/core-free-icons";
+import { ShoppingCart01Icon, Image01Icon } from "@hugeicons/core-free-icons";
+import { WishlistButton } from "@/components/app/WishlistButton";
 // import {Card, CardContent} from "@/components/ui/card";
 // import {Badge} from "@/components/ui/badge";
 
@@ -138,13 +139,7 @@ export function ProductCard({
                         <HugeiconsIcon icon={ShoppingCart01Icon} size={14} />
                         {adding ? "ADDING…" : "ADD TO CART"}
                     </button>
-                    <button
-                        type="button"
-                        aria-label="Add to wishlist"
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-red-500 transition hover:bg-red-50"
-                    >
-                        <HugeiconsIcon icon={FavouriteIcon} size={16} />
-                    </button>
+                    <WishlistButton productId={product.id} />
                 </div>
             </div>
         </div>

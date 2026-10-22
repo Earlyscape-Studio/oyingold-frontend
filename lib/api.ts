@@ -211,6 +211,7 @@ type ProductListParams = {
     category?: string;
     brand?: string;
     q?: string;
+    limit?: number;
 }
 
 
@@ -286,17 +287,20 @@ export async function getBrands(): Promise<Brand[]> {
 
 
 export async function getProducts(
-    params: ProductListParams = {}
+    params: ProductListParams = {},
+    options: {signal?: AbortSignal} = {}
 ): Promise<Product[]>{
     const searchParams = new URLSearchParams();
     if (params.category) searchParams.set("category", params.category);
     if (params.brand) searchParams.set("brand", params.brand);
     if (params.q) searchParams.set("q", params.q);
+    if (params.limit) searchParams.set("limit", String(params.limit));
 
 
     const res = await fetch(`${API_URL}/products?${searchParams.toString()}`, {
         // next: {revalidate: 30}
-        cache: "no-store"
+        cache: "no-store",
+        signal: options.signal
     });
 
     if(!res.ok){
@@ -389,7 +393,7 @@ export async function deleteProduct(
     accessToken: string,
 ): Promise<{ok: true} | {ok: false; error: string}>{
 
-    const res = await fetch(`${API_URL}/product/${id}`, {
+    const res = await fetch(`${API_URL}/products/${id}`, {
         method: "DELETE",
         headers: {
             Authorization: `Bearer ${accessToken}`
@@ -436,7 +440,7 @@ export async function updateProductVariant(
     input: UpdateVariantInput,
     accessToken: string
 ): Promise<{ok: true; variant: ProductVariant} | {ok: false, error: string}>{
-    const res = await fetch(`${API_URL}/products/%${productId}/variants/${variantId}`,{
+    const res = await fetch(`${API_URL}/products/${productId}/variants/${variantId}`,{
         method: "PATCH",
         headers:{
             "Content-Type": "application/json",
@@ -876,4 +880,97 @@ export async function getMyAddresses(accessToken: string): Promise<SavedAddress[
     }
 
     return res.json();
+}
+
+
+
+//-------------------------Wishlist----------------------
+
+export type WishlistItem = {
+    id: string;
+    addedAt: string;
+    product: Product;
+}
+
+
+export async function getWishlist(accessToken: string): Promise<WishlistItem[]> {
+    const res = await fetch(`${API_URL}/wishlist`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        cache: "no-store"
+    });
+
+    if(!res.ok){
+        throw new Error(`Failed to fetch your wishlist, ${res.status}`);
+    }
+
+    return res.json();
+}
+
+
+export async function getWishlistIds(accessToken: string): Promise<string[]> {
+    const res = await fetch(`${API_URL}/wishlist/ids`, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        cache: "no-store"
+    });
+
+    if(!res.ok){
+        throw new Error(`Failed to fetch your wishlist, ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.productIds;
+}
+
+
+export async function addToWishlist(
+    productId: string,
+    accessToken: string
+): Promise<{ok: true} | {ok: false; error: string}> {
+    try{
+        const res = await fetch(`${API_URL}/wishlist`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({productId})
+        });
+
+        if(!res.ok){
+            const data = await res.json().catch(() => null);
+            return {ok: false, error: data?.error ?? "Failed to add to wishlist"};
+        }
+
+        return {ok: true};
+    }catch{
+        return {ok: false, error: "Couldn't reach the server. Check your connection and try again."};
+    }
+}
+
+
+export async function removeFromWishlist(
+    productId: string,
+    accessToken: string
+): Promise<{ok: true} | {ok: false; error: string}> {
+    try{
+        const res = await fetch(`${API_URL}/wishlist/${productId}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        if(!res.ok){
+            const data = await res.json().catch(() => null);
+            return {ok: false, error: data?.error ?? "Failed to remove from wishlist"};
+        }
+
+        return {ok: true};
+    }catch{
+        return {ok: false, error: "Couldn't reach the server. Check your connection and try again."};
+    }
 }
