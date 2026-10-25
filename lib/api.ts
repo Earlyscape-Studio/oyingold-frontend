@@ -1,976 +1,1003 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export type ProductVariant = {
+  id: string;
+  productId: string;
+  sku: string;
+  unitLabel: string;
+  unitsPerCarton: number;
+  cartonPrice: string;
+  piecePrice: string | null;
+  stockLevel: number;
+  lowStockThreshold: number;
+};
+
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export type Brand = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  description: string | null;
+  images: string[];
+  isFeatured: boolean;
+  category: Category;
+  brand: Brand;
+  variants: ProductVariant[];
+  createdAt: string;
+};
+
+export type Me = {
+  id: string;
+  email: string;
+  role: "ADMIN" | "CUSTOMER";
+  fullName: string | null;
+  phone: string | null;
+  memberSince: string;
+  totalOrders: number;
+};
+
+export type DashboardStats = {
+  sales: {
+    today: number;
+    month: number;
+    todayOrderCount: number;
+    monthOrderCount: number;
+    averageOrderValueMonth: number;
+  };
+  recentOrders: {
     id: string;
-    productId: string;
+    status: string;
+    totalAmount: string;
+    createdAt: string;
+    needsAttention: boolean;
+    user: { id: string; email: string };
+  }[];
+  lowStockVariants: {
+    id: string;
+    sku: string;
+    unitLabel: string;
+    stockLevel: number;
+    lowStockThreshold: number;
+    productName: string;
+  }[];
+  needsAttentionCount: number;
+  note: string;
+};
+
+export type UpdateProductInput = {
+  name?: string;
+  description?: string | null;
+  categoryId?: string;
+  brandId?: string;
+  isFeatured?: boolean;
+  images?: string[];
+};
+
+export type CreateProductInput = {
+  name: string;
+  description?: string | null;
+  categoryId: string;
+  brandId: string;
+  images?: string[];
+  variant: {
     sku: string;
     unitLabel: string;
     unitsPerCarton: number;
     cartonPrice: string;
-    piecePrice: string | null;
-    stockLevel:number;
+    piecePrice?: string;
+    stockLevel: number;
     lowStockThreshold: number;
-}
-
-export type Category = {
-    id: string;
-    name: string;
-    slug: string;
-}
-
-
-export type Brand = {
-    id: string;
-    name: string;
-    slug: string;
-}
-
-
-export type Product = {
-    id: string;
-    name: string;
-    description: string | null;
-    images: string[];
-    isFeatured: boolean;
-    category: Category;
-    brand: Brand;
-    variants: ProductVariant[]
-    createdAt: string
-}
-
-
-export type Me = {
-    id: string;
-    email: string;
-    role: "ADMIN" | "CUSTOMER";
-    fullName: string | null;
-    phone: string | null;
-    memberSince: string;
-    totalOrders: number;
-}
-
-export type DashboardStats = {
-    sales:{
-        today: number;
-        month: number;
-        todayOrderCount: number;
-        monthOrderCount: number;
-        averageOrderValueMonth: number;
-    };
-    recentOrders: {
-        id: string;
-        status: string;
-        totalAmount: string;
-        createdAt: string;
-        user: {id: string; email: string}
-    }[];
-    lowStockVariants: {
-        id: string;
-        sku: string;
-        unitLabel: string;
-        stockLevel: number;
-        lowStockThreshold: number;
-        productName: string;
-    }[];
-    note: string;
-}
-
-
-export type UpdateProductInput = {
-    name?: string;
-    description?: string | null;
-    categoryId?: string;
-    brandId?: string;
-    isFeatured?: boolean;
-    images?: string[]
-}
-
-export type CreateProductInput = {
-    name: string;
-    description?: string | null;
-    categoryId: string;
-    brandId: string;
-    images?: string[];
-    variant: {
-        sku: string;
-        unitLabel: string;
-        unitsPerCarton: number;
-        cartonPrice: string;
-        piecePrice?: string;
-        stockLevel: number;
-        lowStockThreshold: number;
-    };
+  };
 };
 
 export type UpdateVariantInput = {
-    sku?: string;
-    unitLabel?: string;
-    unitsPerCarton?: number;
-    cartonPrice?: string;
-    piecePrice?: string | null;
-    stockLevel?: number;
-    lowStockThreshold?: number;
-}
-
-export type CategoryOrBrandInput = {
-    name?: string;
-    slug?: string;
-}
-
-export type OrderStatus = 
-    | "PENDING_PAYMENT"
-    | "UNFULFILLED"
-    | "PROCESSING"
-    | "SHIPPED"
-    | "DELIVERED"
-    | "CANCELLED";
-
-export type OrderItemDetail = {
-    id: string;
-    quantity: number;
-    unitPrice: number;
-    pricingType: "CARTON" | "PIECE";
-    productVariant: ProductVariant & {
-        product: {
-            id: string;
-            name: string;
-        };
-    };
+  sku?: string;
+  unitLabel?: string;
+  unitsPerCarton?: number;
+  cartonPrice?: string;
+  piecePrice?: string | null;
+  stockLevel?: number;
+  lowStockThreshold?: number;
 };
 
+export type CategoryOrBrandInput = {
+  name?: string;
+  slug?: string;
+};
+
+export type OrderStatus =
+  | "PENDING_PAYMENT"
+  | "UNFULFILLED"
+  | "PROCESSING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
+
+export type OrderItemDetail = {
+  id: string;
+  quantity: number;
+  unitPrice: number;
+  pricingType: "carton" | "piece";
+  productVariant: ProductVariant & {
+    product: {
+      id: string;
+      name: string;
+    };
+  };
+};
+
+// One payment attempt on an order (admin order detail only).
+export type AdminPayment = {
+  id: string;
+  reference: string;
+  gatewayReference: string | null;
+  checkoutMode: "INLINE" | "STANDARD";
+  amount: string;
+  fee: string | null;
+  status: "PENDING" | "PAID" | "FAILED";
+  gatewayCode: string | null;
+  gatewayMessage: string | null;
+  channel: string | null;
+  paidAt: string | null;
+  createdAt: string;
+};
 
 export type Order = {
+  id: string;
+  status: OrderStatus;
+  totalAmount: string;
+  trackingNumber: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Set by the system when something about an order needs a person to look at it
+  // (for example a payment that arrived for stock that ran out).
+  needsAttention: boolean;
+  needsAttentionReason: string | null;
+  user: {
     id: string;
-    status: OrderStatus;
-    totalAmount: string;
-    trackingNumber: string | null;
-    createdAt: string;
-    updatedAt: string;
-    user: {
-        id: string;
-        email: string;
-    };
-    items: OrderItemDetail[];
-}
+    email: string;
+  };
+  items: OrderItemDetail[];
+  payments?: AdminPayment[];
+};
 
 //---- Customer account (GET /me/orders, GET /me/addresses) ----
 
 export type ShippingAddress = {
-    fullName: string;
-    phone: string;
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-}
+  fullName: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+};
 
 export type CustomerOrderItem = {
-    id: string;
-    productId: string;
-    name: string;
-    unitLabel: string;
-    image: string | null;
-    pricingType: "carton" | "piece";
-    unitPrice: number;
-    quantity: number;
-}
+  id: string;
+  productId: string;
+  name: string;
+  unitLabel: string;
+  image: string | null;
+  pricingType: "carton" | "piece";
+  unitPrice: number;
+  quantity: number;
+};
 
 export type CustomerOrder = {
-    id: string;
-    reference: string;
-    status: OrderStatus;
-    // 1-5 position on the tracker, null for cancelled orders
-    step: number | null;
-    total: number;
-    trackingNumber: string | null;
-    shippingAddress: ShippingAddress | null;
-    createdAt: string;
-    items: CustomerOrderItem[];
-}
+  id: string;
+  reference: string;
+  status: OrderStatus;
+  // 1-5 position on the tracker, null for cancelled orders
+  step: number | null;
+  total: number;
+  trackingNumber: string | null;
+  shippingAddress: ShippingAddress | null;
+  createdAt: string;
+  items: CustomerOrderItem[];
+};
 
 export type PaginatedOrders = {
-    data: CustomerOrder[];
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-}
+  data: CustomerOrder[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
 
 export type SavedAddress = ShippingAddress & {
-    id: string;
-    isDefault: boolean;
-    isLastUsed: boolean;
-}
+  id: string;
+  isDefault: boolean;
+  isLastUsed: boolean;
+};
 
 export type UpdateOrderInput = {
-    status: OrderStatus,
-    trackingNumber?: string | null;
-}
+  status: OrderStatus;
+  trackingNumber?: string | null;
+};
 
 type ProductListParams = {
-    category?: string;
-    brand?: string;
-    q?: string;
-    limit?: number;
-}
-
+  category?: string;
+  brand?: string;
+  q?: string;
+  limit?: number;
+};
 
 export type PricingType = "carton" | "piece";
 
 export type CartItem = {
-    id: string;
-    cartId: string;
-    productVariantId: string;
-    pricingType: PricingType;
-    quantity: number;
-    createdAt: string;
-    updatedAt: string;
-    productVariant: ProductVariant & {
-        product: Product;
-    }
-}
-
+  id: string;
+  cartId: string;
+  productVariantId: string;
+  pricingType: PricingType;
+  quantity: number;
+  createdAt: string;
+  updatedAt: string;
+  productVariant: ProductVariant & {
+    product: Product;
+  };
+};
 
 export type Cart = {
-    id: string;
-    userId: string;
-    createdAt: string;
-    updatedAt: string;
-    items: CartItem[];
-}
+  id: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  items: CartItem[];
+};
 
 export type CartItemInput = {
-    productVariantId: string;
-    pricingType: PricingType;
-    quantity?: number;
-}
-
+  productVariantId: string;
+  pricingType: PricingType;
+  quantity?: number;
+};
 
 export type AdminUser = {
-    id: string;
-    email: string;
-    createdAt: string;
-}
-
-
+  id: string;
+  email: string;
+  createdAt: string;
+};
 
 export async function getCategories(): Promise<Category[]> {
+  const res = await fetch(`${API_URL}/categories`, {
+    next: { revalidate: 60 },
+  });
 
-    const res = await fetch(`${API_URL}/categories`, {
-        next: {revalidate: 60}
-    });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch categories, ${res.status}`);
+  }
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch categories, ${res.status}`);
-    }
-
-    return res.json()
+  return res.json();
 }
-
 
 export async function getBrands(): Promise<Brand[]> {
+  const res = await fetch(`${API_URL}/brands`, {
+    next: { revalidate: 60 },
+  });
 
-    const res = await fetch(`${API_URL}/brands`, {
-        next: {revalidate: 60}
-    });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch brands, ${res.status}`);
+  }
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch brands, ${res.status}`);
-    }
-
-    return res.json()
+  return res.json();
 }
-
 
 //----------------------Products---------
 
-
-
 export async function getProducts(
-    params: ProductListParams = {},
-    options: {signal?: AbortSignal} = {}
-): Promise<Product[]>{
-    const searchParams = new URLSearchParams();
-    if (params.category) searchParams.set("category", params.category);
-    if (params.brand) searchParams.set("brand", params.brand);
-    if (params.q) searchParams.set("q", params.q);
-    if (params.limit) searchParams.set("limit", String(params.limit));
+  params: ProductListParams = {},
+  options: { signal?: AbortSignal } = {}
+): Promise<Product[]> {
+  const searchParams = new URLSearchParams();
+  if (params.category) searchParams.set("category", params.category);
+  if (params.brand) searchParams.set("brand", params.brand);
+  if (params.q) searchParams.set("q", params.q);
+  if (params.limit) searchParams.set("limit", String(params.limit));
 
+  const res = await fetch(`${API_URL}/products?${searchParams.toString()}`, {
+    // next: {revalidate: 30}
+    cache: "no-store",
+    signal: options.signal,
+  });
 
-    const res = await fetch(`${API_URL}/products?${searchParams.toString()}`, {
-        // next: {revalidate: 30}
-        cache: "no-store",
-        signal: options.signal
-    });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch products, ${res.status}`);
+  }
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch products, ${res.status}`);
-    }
-
-    return res.json();
+  return res.json();
 }
 
-export async function getProduct(id: string): Promise<Product | null>{
-    const res = await fetch(`${API_URL}/products/${id}`, {
-        // next: {revalidate: 30}
-        cache: "no-store"
-    });
+export async function getProduct(id: string): Promise<Product | null> {
+  const res = await fetch(`${API_URL}/products/${id}`, {
+    // next: {revalidate: 30}
+    cache: "no-store",
+  });
 
-    if(res.status === 404) return null;
-    if(!res.ok){
-        throw new Error(`Failed to fetch product ${id}, ${res.status}`);;
-    }
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Failed to fetch product ${id}, ${res.status}`);
+  }
 
-    return res.json();
+  return res.json();
 }
 
+export async function createProduct(
+  input: CreateProductInput,
+  accessToken: string
+): Promise<{ ok: true; product: Product } | { ok: false; error: string }> {
+  const res = await fetch(`${API_URL}/products`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(input),
+  });
 
-export async function createProduct (
-    input: CreateProductInput,
-    accessToken: string
-): Promise<{ok: true; product: Product} | {ok: false; error: string}> {
-    const res = await fetch(`${API_URL}/products`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': "application/json",
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify(input)
-    });
+  const data = await res.json();
 
-    const data = await res.json()
+  if (!res.ok) {
+    return { ok: false, error: data?.error ?? "Failed to create product" };
+  }
 
-
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? 'Failed to create product'};
-    }
-
-    return {ok: true, product: data};
+  return { ok: true, product: data };
 }
 
-
-export function hasValidPrice(price: string | null | undefined): price is string {
-    if (!price) return false;
-    const amount = parseFloat(price);
-    return Number.isFinite(amount) && amount > 0;
+export function hasValidPrice(
+  price: string | null | undefined
+): price is string {
+  if (!price) return false;
+  const amount = parseFloat(price);
+  return Number.isFinite(amount) && amount > 0;
 }
- 
+
 export function isVariantInStock(variant: ProductVariant): boolean {
-    return variant.stockLevel > 0;
+  return variant.stockLevel > 0;
 }
-
 
 export function isVariantPurchasable(variant: ProductVariant): boolean {
-    return isVariantInStock(variant) && hasValidPrice(variant.cartonPrice);
+  return isVariantInStock(variant) && hasValidPrice(variant.cartonPrice);
 }
 
+export function getStartingPrice(
+  product: Product
+): { amount: string; unit: "piece" | "carton" } | null {
+  if (product.variants.length === 0) return null;
 
-export function getStartingPrice(product:Product) : {amount: string; unit: "piece" | "carton"} | null {
+  let best: { amount: string; unit: "piece" | "carton" } | null = null;
 
-    if(product.variants.length === 0) return null;
+  for (const v of product.variants) {
+    if (!isVariantPurchasable(v)) continue;
 
-    let best: {amount: string; unit: "piece" | "carton"} | null = null;
+    const candidate = hasValidPrice(v.piecePrice)
+      ? { amount: v.piecePrice, unit: "piece" as const }
+      : { amount: v.cartonPrice, unit: "carton" as const };
 
-    for (const v of product.variants) {
-      if(!isVariantPurchasable(v)) continue;
-
-      const candidate =  hasValidPrice(v.piecePrice)
-        ? {amount: v.piecePrice, unit: "piece" as const}
-        : {amount: v.cartonPrice, unit: "carton" as const};
-
-      if (!best || parseFloat(candidate.amount) < parseFloat(best.amount)){
-        best = candidate
-      }
+    if (!best || parseFloat(candidate.amount) < parseFloat(best.amount)) {
+      best = candidate;
     }
+  }
 
-    return best;
-
+  return best;
 }
-
 
 export async function deleteProduct(
-    id: string,
-    accessToken: string,
-): Promise<{ok: true} | {ok: false; error: string}>{
+  id: string,
+  accessToken: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const res = await fetch(`${API_URL}/product/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
-    const res = await fetch(`${API_URL}/products/${id}`, {
-        method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        }
-    })
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    return {
+      ok: false,
+      error: data?.error ?? `Failed to delete product, ${res.status}`,
+    };
+  }
 
-
-    if(!res.ok){
-        const data = await res.json().catch(() => null);
-        return {ok: false, error: data?.error ?? `Failed to delete product, ${res.status}`};
-    }
-
-
-
-    return {ok: true};
+  return { ok: true };
 }
 
+export async function updateProduct(
+  id: string,
+  input: UpdateProductInput,
+  accessToken: string
+): Promise<{ ok: true; product: Product } | { ok: false; error: string }> {
+  const res = await fetch(`${API_URL}/products/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(input),
+  });
 
-export async function updateProduct(id: string, input: UpdateProductInput, accessToken: string): Promise<{ok: true; product: Product} | {ok: false; error: string}> {
-    const res = await fetch(`${API_URL}/products/${id}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify(input)
-    });
+  const data = await res.json();
 
-    const data = await res.json();
+  if (!res.ok) {
+    return { ok: false, error: data?.error ?? "Failed to update product" };
+  }
 
-
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? "Failed to update product"};
-    }
-
-
-    return {ok: true, product: data};
+  return { ok: true, product: data };
 }
-
 
 export async function updateProductVariant(
-    productId: string,
-    variantId: string,
-    input: UpdateVariantInput,
-    accessToken: string
-): Promise<{ok: true; variant: ProductVariant} | {ok: false, error: string}>{
-    const res = await fetch(`${API_URL}/products/${productId}/variants/${variantId}`,{
-        method: "PATCH",
-        headers:{
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify(input)
-    });
-
-    const data = await res.json();
-
-    if(!res.ok){
-        return {ok: false, error: `Failed to update variant`};
+  productId: string,
+  variantId: string,
+  input: UpdateVariantInput,
+  accessToken: string
+): Promise<
+  { ok: true; variant: ProductVariant } | { ok: false; error: string }
+> {
+  const res = await fetch(
+    `${API_URL}/products/${productId}/variants/${variantId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(input),
     }
+  );
 
-    return {ok: true, variant: data};
+  const data = await res.json();
+
+  if (!res.ok) {
+    return { ok: false, error: `Failed to update variant` };
+  }
+
+  return { ok: true, variant: data };
 }
-
-
 
 export async function getMe(accessToken: string): Promise<Me | null> {
-    const res = await fetch(`${API_URL}/me`, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
+  const res = await fetch(`${API_URL}/me`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
 
-    if(!res.ok) return null;
+  if (!res.ok) return null;
 
-    return res.json();
+  return res.json();
 }
 
+export async function getDashboardStats(
+  accessToken: string
+): Promise<DashboardStats> {
+  const res = await fetch(`${API_URL}/dashboard/stats`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
 
-export async function getDashboardStats(accessToken: string): Promise<DashboardStats> {
-    const res = await fetch(`${API_URL}/dashboard/stats`, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store",
-    });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch dashboard stats, ${res.status}`);
+  }
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch dashboard stats, ${res.status}`);
-    }
-
-    return res.json();
+  return res.json();
 }
-
-
 
 async function createEntity(
-    resource: "categories" | "brands",
-    input: {name: string; slug: string},
-    accessToken: string,
-): Promise<{ok: true; data: Category | Brand} | {ok: false; error: string}>{
-    const res = await fetch(`${API_URL}/${resource}`, {
-        method: "POST",
-        headers:{
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify(input)
-    });
+  resource: "categories" | "brands",
+  input: { name: string; slug: string },
+  accessToken: string
+): Promise<
+  { ok: true; data: Category | Brand } | { ok: false; error: string }
+> {
+  const res = await fetch(`${API_URL}/${resource}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(input),
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
+  if (!res.ok) {
+    return {
+      ok: false,
+      error: data?.error ?? `Failed to create ${resource.slice(0, -1)}`,
+    };
+  }
 
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? `Failed to create ${resource.slice(0, -1)}`}
-    }
-
-
-
-    return {ok: true, data};
+  return { ok: true, data };
 }
-
 
 async function updateEntity(
-    resource: "categories" | "brands",
-    id: string,
-    input: CategoryOrBrandInput,
-    accessToken: string
-) : Promise<{ok: true, data: Category | Brand} | {ok: false, error: string}>{
-    const res = await fetch(`${API_URL}/${resource}/${id}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify(input)
-    });
+  resource: "categories" | "brands",
+  id: string,
+  input: CategoryOrBrandInput,
+  accessToken: string
+): Promise<
+  { ok: true; data: Category | Brand } | { ok: false; error: string }
+> {
+  const res = await fetch(`${API_URL}/${resource}/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(input),
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? `Failed to update ${resource.slice(0, -1)}`};
-    }
+  if (!res.ok) {
+    return {
+      ok: false,
+      error: data?.error ?? `Failed to update ${resource.slice(0, -1)}`,
+    };
+  }
 
-    return {ok: true, data};
-    
+  return { ok: true, data };
 }
-
 
 async function deleteEntity(
-    resource: "categories"  | "brands",
-    id: string,
-    accessToken: string
-): Promise<{ok: true} | {ok: false, error: string}>{
-    const res = await fetch(`${API_URL}/${resource}/${id}`, {
-        method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        }
-    });
+  resource: "categories" | "brands",
+  id: string,
+  accessToken: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const res = await fetch(`${API_URL}/${resource}/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
-    if(!res.ok){
-        const data = await res.json().catch(() => null);
-        return {ok: false, error: data?.error ?? `Failed to delete ${resource.slice(0, -1)}`};
-    }
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    return {
+      ok: false,
+      error: data?.error ?? `Failed to delete ${resource.slice(0, -1)}`,
+    };
+  }
 
-    return {ok: true};
+  return { ok: true };
 }
 
+export const createCategory = (
+  input: { name: string; slug: string },
+  token: string
+) => createEntity("categories", input, token);
+export const updateCategory = (
+  id: string,
+  input: CategoryOrBrandInput,
+  token: string
+) => updateEntity("categories", id, input, token);
+export const deleteCategory = (id: string, token: string) =>
+  deleteEntity("categories", id, token);
 
-
-
-
-export const createCategory = (input: {name: string; slug: string}, token: string) => createEntity("categories", input, token);
-export const updateCategory = (id: string, input: CategoryOrBrandInput, token: string) => updateEntity("categories", id, input, token);
-export const deleteCategory = (id: string, token: string) => deleteEntity("categories", id, token);
-
-
-export const createBrand = (input: {name: string; slug: string}, token: string) => createEntity("brands", input, token);
-export const updateBrand = (id: string, input: CategoryOrBrandInput, token: string) => updateEntity("brands", id, input, token);
-export const deleteBrand = (id: string, token: string) => deleteEntity("brands" , id, token);
-
-
+export const createBrand = (
+  input: { name: string; slug: string },
+  token: string
+) => createEntity("brands", input, token);
+export const updateBrand = (
+  id: string,
+  input: CategoryOrBrandInput,
+  token: string
+) => updateEntity("brands", id, input, token);
+export const deleteBrand = (id: string, token: string) =>
+  deleteEntity("brands", id, token);
 
 //---------------------Orders -----------------------------------
 export async function getOrders(
-    accessToken: string,
-    status?: OrderStatus
+  accessToken: string,
+  status?: OrderStatus,
+  filters: { needsAttention?: boolean } = {}
 ): Promise<Order[]> {
+  const url = new URL(`${API_URL}/orders`);
+  if (status) url.searchParams.set("status", status);
+  if (filters.needsAttention) url.searchParams.set("needsAttention", "true");
 
-    const url = new URL(`${API_URL}/orders`);
-    if(status) url.searchParams.set("status", status);
+  const res = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
 
-    
-    const res = await fetch(url.toString(),{
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch orders ${res.status}`);
+  }
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch orders ${res.status}`);
-    }
-
-    return res.json();
+  return res.json();
 }
-
 
 export async function getOrder(
-    id: string,
-    accessToken: string
+  id: string,
+  accessToken: string
 ): Promise<Order | null> {
-    const res = await fetch(`${API_URL}/orders/${id}`, {
-        headers:{
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
+  const res = await fetch(`${API_URL}/orders/${id}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
 
-    if(res.status === 404) return null;
-    if(!res.ok){
-        throw new Error(`Failed to fetch order, ${res.status}`);
-    }
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Failed to fetch order, ${res.status}`);
+  }
 
-    return res.json();
+  return res.json();
 }
-
 
 export async function updateOrderStatus(
-    id: string,
-    input: UpdateOrderInput,
-    accessToken: string
-): Promise<{ok: true; order: Order} | {ok: false; error: string}>{
+  id: string,
+  input: UpdateOrderInput,
+  accessToken: string
+): Promise<{ ok: true; order: Order } | { ok: false; error: string }> {
+  const res = await fetch(`${API_URL}/orders/${id}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(input),
+  });
 
-    const res = await fetch(`${API_URL}/orders/${id}/status`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify(input)
-    });
+  const data = await res.json();
 
-    const data = await res.json();
+  if (!res.ok) {
+    return { ok: false, error: data?.error ?? "Failed to update order status" };
+  }
 
-
-    if(!res.ok){
-        return {ok: false, error: data?.error ??  "Failed to update order status"};
-    }
-
-
-    return {ok: true, order: data};
+  return { ok: true, order: data };
 }
 
+// An admin has dealt with a flagged order; clears the flag and its reason.
+export async function resolveOrderAttention(
+  id: string,
+  accessToken: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const res = await fetch(`${API_URL}/orders/${id}/attention`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    return {
+      ok: false,
+      error: data?.error ?? "Failed to mark the order as resolved",
+    };
+  }
+
+  return { ok: true };
+}
 
 //-------------------------Cart----------------------
 
-export function getCartItemUnitPrice (item: CartItem): number {
-    const price = item.pricingType === "piece"
-            ? item.productVariant.piecePrice
-            : item.productVariant.cartonPrice
+export function getCartItemUnitPrice(item: CartItem): number {
+  const price =
+    item.pricingType === "piece"
+      ? item.productVariant.piecePrice
+      : item.productVariant.cartonPrice;
 
-    return price ? parseFloat(price) : 0
-
+  return price ? parseFloat(price) : 0;
 }
 
-
-export function getCartTotal(cart: Cart | null): number{
-    if(!cart) return 0;
-    return cart.items.reduce(
-        (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity,
-        0
-    );
+export function getCartTotal(cart: Cart | null): number {
+  if (!cart) return 0;
+  return cart.items.reduce(
+    (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity,
+    0
+  );
 }
 
-
-export function getCartItemCount(cart: Cart | null) : number{
-    if (!cart) return 0;
-    return cart.items.reduce((sum, item) => sum + item.quantity, 0);
+export function getCartItemCount(cart: Cart | null): number {
+  if (!cart) return 0;
+  return cart.items.reduce((sum, item) => sum + item.quantity, 0);
 }
-
-
 
 export async function getCart(accessToken: string): Promise<Cart> {
-    const res = await fetch(`${API_URL}/cart`, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
+  const res = await fetch(`${API_URL}/cart`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
 
+  if (!res.ok) {
+    throw new Error(`Failed to fetch cart ${res.status}`);
+  }
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch cart ${res.status}`);
-    }
-
-    return res.json();
+  return res.json();
 }
-
 
 // Cart requests never throw: network failures and non-JSON error bodies
 // (e.g. a plain-text 500) come back as {ok: false, error} so the UI can recover.
 async function cartRequest(
-    url: string,
-    init: RequestInit,
-    fallbackError: string
-): Promise<{ok: true, cart: Cart} | {ok: false, error: string}> {
-    let res: Response;
+  url: string,
+  init: RequestInit,
+  fallbackError: string
+): Promise<{ ok: true; cart: Cart } | { ok: false; error: string }> {
+  let res: Response;
 
-    try{
-        res = await fetch(url, init);
-    }catch{
-        return {ok: false, error: "Couldn't reach the server. Check your connection and try again."};
-    }
+  try {
+    res = await fetch(url, init);
+  } catch {
+    return {
+      ok: false,
+      error: "Couldn't reach the server. Check your connection and try again.",
+    };
+  }
 
-    const data = await res.json().catch(() => null);
+  const data = await res.json().catch(() => null);
 
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? fallbackError};
-    }
+  if (!res.ok) {
+    return { ok: false, error: data?.error ?? fallbackError };
+  }
 
-    if(!data){
-        return {ok: false, error: fallbackError};
-    }
+  if (!data) {
+    return { ok: false, error: fallbackError };
+  }
 
-    return {ok: true, cart: data};
+  return { ok: true, cart: data };
 }
-
 
 export async function addCartItem(
-    input: CartItemInput,
-    accessToken: string
-): Promise<{ok: true, cart: Cart} | {ok: false, error: string}> {
-    return cartRequest(
-        `${API_URL}/cart/items`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`
-            },
-            body: JSON.stringify(input)
-        },
-        "Failed to add item to cart"
-    );
+  input: CartItemInput,
+  accessToken: string
+): Promise<{ ok: true; cart: Cart } | { ok: false; error: string }> {
+  return cartRequest(
+    `${API_URL}/cart/items`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(input),
+    },
+    "Failed to add item to cart"
+  );
 }
-
 
 export async function updateCartItemQuantity(
-    itemId: string,
-    quantity: number,
-    accessToken: string
-): Promise<{ok: true, cart: Cart} | {ok: false, error: string}>{
-    return cartRequest(
-        `${API_URL}/cart/items/${itemId}`,
-        {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`
-            },
-            body: JSON.stringify({quantity})
-        },
-        "Failed to update cart item"
-    );
+  itemId: string,
+  quantity: number,
+  accessToken: string
+): Promise<{ ok: true; cart: Cart } | { ok: false; error: string }> {
+  return cartRequest(
+    `${API_URL}/cart/items/${itemId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ quantity }),
+    },
+    "Failed to update cart item"
+  );
 }
-
-
-
 
 export async function removeCartItem(
-    itemId: string,
-    accessToken: string
-): Promise<{ok: true, cart: Cart} | {ok: false, error: string}> {
-    return cartRequest(
-        `${API_URL}/cart/items/${itemId}`,
-        {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        },
-        "Failed to remove cart item"
-    );
+  itemId: string,
+  accessToken: string
+): Promise<{ ok: true; cart: Cart } | { ok: false; error: string }> {
+  return cartRequest(
+    `${API_URL}/cart/items/${itemId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+    "Failed to remove cart item"
+  );
 }
-
-
 
 export async function clearCart(
-    accessToken: string
-): Promise<{ok: true} | {ok: false, error: string}>{
-    const res = await fetch(`${API_URL}/cart`, {
-        method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        }
-    })
+  accessToken: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const res = await fetch(`${API_URL}/cart`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    return { ok: false, error: data?.error ?? "Failed to clear cart" };
+  }
 
-    if(!res.ok){
-        const data = await res.json().catch(() => null);
-        return {ok: false, error: data?.error ?? "Failed to clear cart"}
-    }
-
-    return {ok: true};
+  return { ok: true };
 }
-
 
 export async function getAdmins(accessToken: string): Promise<AdminUser[]> {
-    const res = await fetch(`${API_URL}/admin/users`, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
- 
-    if(!res.ok) return [];
- 
-    return res.json();
+  const res = await fetch(`${API_URL}/admin/users`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) return [];
+
+  return res.json();
 }
- 
- 
+
 export async function inviteAdmin(
-    email: string,
-    accessToken: string
-): Promise<{ok: true; admin: AdminUser} | {ok: false; error: string}> {
-    const res = await fetch(`${API_URL}/admin/users`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({email})
-    });
- 
-    const data = await res.json().catch(() => null);
- 
-    if(!res.ok){
-        return {ok: false, error: data?.error ?? "Failed to add admin"};
-    }
- 
-    return {ok: true, admin: data};
+  email: string,
+  accessToken: string
+): Promise<{ ok: true; admin: AdminUser } | { ok: false; error: string }> {
+  const res = await fetch(`${API_URL}/admin/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    return { ok: false, error: data?.error ?? "Failed to add admin" };
+  }
+
+  return { ok: true, admin: data };
 }
-
-
 
 //-------------------------Customer account----------------------
 
 export async function getMyOrders(
-    accessToken: string,
-    params: {page?: number; limit?: number} = {}
+  accessToken: string,
+  params: { page?: number; limit?: number } = {}
 ): Promise<PaginatedOrders> {
-    const url = new URL(`${API_URL}/me/orders`);
-    if (params.page) url.searchParams.set("page", String(params.page));
-    if (params.limit) url.searchParams.set("limit", String(params.limit));
+  const url = new URL(`${API_URL}/me/orders`);
+  if (params.page) url.searchParams.set("page", String(params.page));
+  if (params.limit) url.searchParams.set("limit", String(params.limit));
 
-    const res = await fetch(url.toString(), {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
+  const res = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch your orders, ${res.status}`);
-    }
+  if (!res.ok) {
+    throw new Error(`Failed to fetch your orders, ${res.status}`);
+  }
 
-    return res.json();
+  return res.json();
 }
 
+export async function getMyAddresses(
+  accessToken: string
+): Promise<SavedAddress[]> {
+  const res = await fetch(`${API_URL}/me/addresses`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
 
-export async function getMyAddresses(accessToken: string): Promise<SavedAddress[]> {
-    const res = await fetch(`${API_URL}/me/addresses`, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch your addresses, ${res.status}`);
+  }
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch your addresses, ${res.status}`);
-    }
-
-    return res.json();
+  return res.json();
 }
-
-
 
 //-------------------------Wishlist----------------------
 
 export type WishlistItem = {
-    id: string;
-    addedAt: string;
-    product: Product;
+  id: string;
+  addedAt: string;
+  product: Product;
+};
+
+export async function getWishlist(
+  accessToken: string
+): Promise<WishlistItem[]> {
+  const res = await fetch(`${API_URL}/wishlist`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch your wishlist, ${res.status}`);
+  }
+
+  return res.json();
 }
-
-
-export async function getWishlist(accessToken: string): Promise<WishlistItem[]> {
-    const res = await fetch(`${API_URL}/wishlist`, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
-
-    if(!res.ok){
-        throw new Error(`Failed to fetch your wishlist, ${res.status}`);
-    }
-
-    return res.json();
-}
-
 
 export async function getWishlistIds(accessToken: string): Promise<string[]> {
-    const res = await fetch(`${API_URL}/wishlist/ids`, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        cache: "no-store"
-    });
+  const res = await fetch(`${API_URL}/wishlist/ids`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
 
-    if(!res.ok){
-        throw new Error(`Failed to fetch your wishlist, ${res.status}`);
-    }
+  if (!res.ok) {
+    throw new Error(`Failed to fetch your wishlist, ${res.status}`);
+  }
 
-    const data = await res.json();
-    return data.productIds;
+  const data = await res.json();
+  return data.productIds;
 }
-
 
 export async function addToWishlist(
-    productId: string,
-    accessToken: string
-): Promise<{ok: true} | {ok: false; error: string}> {
-    try{
-        const res = await fetch(`${API_URL}/wishlist`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${accessToken}`
-            },
-            body: JSON.stringify({productId})
-        });
+  productId: string,
+  accessToken: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const res = await fetch(`${API_URL}/wishlist`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ productId }),
+    });
 
-        if(!res.ok){
-            const data = await res.json().catch(() => null);
-            return {ok: false, error: data?.error ?? "Failed to add to wishlist"};
-        }
-
-        return {ok: true};
-    }catch{
-        return {ok: false, error: "Couldn't reach the server. Check your connection and try again."};
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      return { ok: false, error: data?.error ?? "Failed to add to wishlist" };
     }
+
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      error: "Couldn't reach the server. Check your connection and try again.",
+    };
+  }
 }
 
-
 export async function removeFromWishlist(
-    productId: string,
-    accessToken: string
-): Promise<{ok: true} | {ok: false; error: string}> {
-    try{
-        const res = await fetch(`${API_URL}/wishlist/${productId}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        });
+  productId: string,
+  accessToken: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const res = await fetch(`${API_URL}/wishlist/${productId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-        if(!res.ok){
-            const data = await res.json().catch(() => null);
-            return {ok: false, error: data?.error ?? "Failed to remove from wishlist"};
-        }
-
-        return {ok: true};
-    }catch{
-        return {ok: false, error: "Couldn't reach the server. Check your connection and try again."};
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      return {
+        ok: false,
+        error: data?.error ?? "Failed to remove from wishlist",
+      };
     }
+
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      error: "Couldn't reach the server. Check your connection and try again.",
+    };
+  }
 }

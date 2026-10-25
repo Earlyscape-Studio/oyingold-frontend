@@ -21,6 +21,8 @@ import {
     TableCell
 } from "@/components/ui/table";
 import { OrderStatusForm } from "@/components/app/admin/OrderStatusForm";
+import { OrderAttentionCard } from "@/components/app/admin/OrderAttentionCard";
+import { OrderPaymentsCard } from "@/components/app/admin/OrderPaymentsCard";
 
 
 export default function AdminOrderDetailPage() {
@@ -94,6 +96,13 @@ export default function AdminOrderDetailPage() {
                 </p>
             </div>
 
+            <OrderAttentionCard
+                order={order}
+                onResolved={() =>
+                    setOrder({ ...order, needsAttention: false, needsAttentionReason: null })
+                }
+            />
+
             <OrderStatusForm order={order} />
 
             <Card>
@@ -121,7 +130,7 @@ export default function AdminOrderDetailPage() {
                                         {item.productVariant.unitLabel}
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
-                                        {item.pricingType === "CARTON" ? "Carton" : "Piece"}
+                                        {item.pricingType === "carton" ? "Carton" : "Piece"}
                                     </TableCell>
                                     <TableCell>{item.quantity}</TableCell>
                                     <TableCell className="text-right">
@@ -139,6 +148,8 @@ export default function AdminOrderDetailPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            <OrderPaymentsCard payments={order.payments ?? []} />
         </div>
     );
 }

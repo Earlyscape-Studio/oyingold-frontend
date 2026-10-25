@@ -2,12 +2,15 @@
 
 
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { getOrders, type Order, type OrderStatus } from "@/lib/api";
 import { formatNaira } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { NeedsAttentionBadge } from "@/components/app/admin/NeedsAttentionBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     Select,
@@ -36,9 +39,14 @@ const STATUS_OPTIONS: OrderStatus[] = [
 ];
 
 
-export default function AmdinOrdersPage() {
+function AdminOrdersContent() {
+    const searchParams = useSearchParams();
     const [orders, setOrders] = useState<Order[] | null>(null);
     const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
+    // The dashboard links here with ?needsAttention=true.
+    const [attentionOnly, setAttentionOnly] = useState(
+        searchParams.get("needsAttention") === "true"
+    );
     const [error, setError] = useState<string | null>(null);
 
 
@@ -62,7 +70,8 @@ export default function AmdinOrdersPage() {
             try {
                 const result = await getOrders(
                     accessToken,
-                    statusFilter === "ALL" ? undefined : statusFilter
+                    statusFilter === "ALL" ? undefined : statusFilter,
+                    { needsAttention: attentionOnly }
                 );
 
                 if (!cancelled) setOrders(result);
@@ -77,7 +86,7 @@ export default function AmdinOrdersPage() {
         return () => {
             cancelled = true;
         };
-    }, [statusFilter]);
+    }, [statusFilter, attentionOnly]);
 
 
     return (
@@ -85,22 +94,33 @@ export default function AmdinOrdersPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold">Orders</h1>
 
-                <Select
-                    value={statusFilter}
-                    onValueChange={(v) => setStatusFilter(v as OrderStatus | "ALL")}
-                >
-                    <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="ALL">All statuses</SelectItem>
-                        {STATUS_OPTIONS.map((s) => (
-                            <SelectItem key={s} value={s}>
-                                {s}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                    <Button
+                        type="button"
+                        variant={attentionOnly ? "default" : "outline"}
+                        aria-pressed={attentionOnly}
+                        onClick={() => setAttentionOnly((v) => !v)}
+                    >
+                        Needs attention only
+                    </Button>
+
+                    <Select
+                        value={statusFilter}
+                        onValueChange={(v) => setStatusFilter(v as OrderStatus | "ALL")}
+                    >
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ALL">All statuses</SelectItem>
+                            {STATUS_OPTIONS.map((s) => (
+                                <SelectItem key={s} value={s}>
+                                    {s}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             {error && (
@@ -117,7 +137,9 @@ export default function AmdinOrdersPage() {
                 </div>
             ) : orders && orders.length === 0 ? (
                 <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-                    No orders match this filter.
+                    {attentionOnly
+                        ? "No orders need attention."
+                        : "No orders match this filter."}
                 </p>
             ) : orders ? (
                 <div className="rounded-md border">
@@ -133,7 +155,10 @@ export default function AmdinOrdersPage() {
                         </TableHeader>
                         <TableBody>
                             {orders.map((order) => (
-                                <TableRow key={order.id}>
+                                <TableRow
+                                    key={order.id}
+                                    className={order.needsAttention ? "bg-destructive/5" : undefined}
+                                >
                                     <TableCell>
                                         <Link
                                             href={`/admin/orders/${order.id}`}
@@ -150,7 +175,12 @@ export default function AmdinOrdersPage() {
                                     </TableCell>
                                     <TableCell>{formatNaira(order.totalAmount)}</TableCell>
                                     <TableCell>
-                                        <Badge variant="secondary">{order.status}</Badge>
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            <Badge variant="secondary">{order.status}</Badge>
+                                            {order.needsAttention && (
+                                                <NeedsAttentionBadge reason={order.needsAttentionReason} />
+                                            )}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -163,6 +193,11 @@ export default function AmdinOrdersPage() {
 }
 
 
-
-
-
+// useSearchParams needs a Suspense boundary for the page to build.
+export default function AdminOrdersPage() {
+    return (
+        <Suspense fallback={null}>
+            <AdminOrdersContent />
+        </Suspense>
+    );
+}
