@@ -8,6 +8,7 @@ import { formatNaira } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge"
+import { NeedsAttentionBadge } from "@/components/app/admin/NeedsAttentionBadge"
 
 
 
@@ -72,8 +73,21 @@ export default function AdminDashboardPage() {
                 <p className="mt-1 text-sm text-muted-foreground">{stats.note}</p>
             </div>
 
+            {stats.needsAttentionCount > 0 && (
+                <Link
+                    href="/admin/orders?needsAttention=true"
+                    className="flex items-center justify-between rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm hover:bg-destructive/10"
+                >
+                    <span className="font-medium text-destructive">
+                        {stats.needsAttentionCount}{" "}
+                        {stats.needsAttentionCount === 1 ? "order needs" : "orders need"} attention
+                    </span>
+                    <span className="text-muted-foreground">Review →</span>
+                </Link>
+            )}
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card>
+                <Card className="border-t-4 border-t-primary">
                     <CardHeader>
                         <CardTitle className="text-sm text-muted-foreground">
                             Sales today
@@ -89,7 +103,7 @@ export default function AdminDashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-t-4 border-t-primary">
                     <CardHeader>
                         <CardTitle className="text-sm text-muted-foreground">
                             Sales this month
@@ -105,7 +119,7 @@ export default function AdminDashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-t-4 border-t-primary">
                     <CardHeader>
                         <CardTitle className="text-sm text-muted-foreground">
                             Avg order value (month)
@@ -118,7 +132,7 @@ export default function AdminDashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-t-4 border-t-brand-red">
                     <CardHeader>
                         <CardTitle className="text-sm text-muted-foreground">
                             Low stock items
@@ -160,6 +174,7 @@ export default function AdminDashboardPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span>{formatNaira(order.totalAmount)}</span>
+                                            {order.needsAttention && <NeedsAttentionBadge />}
                                             <Badge variant="secondary">{order.status}</Badge>
                                         </div>
                                     </li>

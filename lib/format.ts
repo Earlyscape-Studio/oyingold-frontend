@@ -6,6 +6,20 @@ export function formatNaira(value: string | number): string {
     maximumFractionDigits: 0,
   }).format(num);
 }
+
+
+// Same as formatNaira, but keeps kobo when there is any. Used where fees and
+// totals can be fractional (checkout), so the lines on screen add up exactly.
+export function formatNairaExact(value: string | number): string {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  const digits = Number.isInteger(num) ? 0 : 2;
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(num);
+}
  
 
 export function getEmailDisplayName(email: string): string {
