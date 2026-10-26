@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
@@ -46,9 +48,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const pathname = usePathname();
     const router = useRouter();
 
+    // The admin theme (brand navy and red) lives on <html> as well as on the
+    // wrapper below, so dropdowns and dialogs that render outside the wrapper
+    // pick it up too. It's removed again when leaving the admin.
+    useEffect(() => {
+        document.documentElement.classList.add("admin-theme");
+        return () => document.documentElement.classList.remove("admin-theme");
+    }, []);
+
 
     if (pathname === "/admin/login") {
-        return <>{children}</>
+        return (
+            <div className="admin-theme min-h-svh bg-background text-foreground">
+                {children}
+            </div>
+        );
     }
 
     async function handleSignOut() {
@@ -58,63 +72,79 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 
     return (
-        <RequireAdminSession>
-            <SidebarProvider>
-                <Sidebar collapsible="icon">
-                    <SidebarHeader className="px-3 py-3">
-                        <span className="text-sm font-semibold">Oyingold Admin</span>
-                    </SidebarHeader>
+        <div className="admin-theme min-h-svh bg-background text-foreground">
+            <RequireAdminSession>
+                <SidebarProvider>
+                    <Sidebar collapsible="icon">
+                        <SidebarHeader className="flex-row items-center gap-2.5 px-3 py-4">
+                            <div className="relative size-8 shrink-0">
+                                <Image
+                                    src="/images/Logo-pic.svg"
+                                    alt="Oyingold"
+                                    fill
+                                    className="object-contain"
+                                />
+                            </div>
+                            <div className="leading-tight group-data-[collapsible=icon]:hidden">
+                                <p className="text-sm font-semibold tracking-wide">OYINGOLD</p>
+                                <p className="text-[11px] uppercase tracking-[0.2em] text-sidebar-foreground/70">
+                                    Admin
+                                </p>
+                            </div>
+                        </SidebarHeader>
 
-                    <SidebarContent>
-                        <SidebarGroup>
-                            <SidebarGroupLabel>Manage</SidebarGroupLabel>
-                            <SidebarGroupContent>
-                                <SidebarMenu>
-                                    {NAV_ITEMS.map((item) => {
-                                        const isActive =
-                                            item.href === "/admin"
-                                                ? pathname === "/admin"
-                                                : pathname.startsWith(item.href);
+                        <SidebarContent>
+                            <SidebarGroup>
+                                <SidebarGroupLabel>Manage</SidebarGroupLabel>
+                                <SidebarGroupContent>
+                                    <SidebarMenu>
+                                        {NAV_ITEMS.map((item) => {
+                                            const isActive =
+                                                item.href === "/admin"
+                                                    ? pathname === "/admin"
+                                                    : pathname.startsWith(item.href);
 
-                                        return (
-                                            <SidebarMenuItem key={item.href}>
-                                                <SidebarMenuButton
-                                                    asChild
-                                                    isActive={isActive}
-                                                    tooltip={item.label}
-                                                >
-                                                    <Link href={item.href}>
-                                                        <HugeiconsIcon icon={item.icon} strokeWidth={2} />
-                                                        <span>{item.label}</span>
-                                                    </Link>
-                                                </SidebarMenuButton>
-                                            </SidebarMenuItem>
-                                        );
-                                    })}
-                                </SidebarMenu>
-                            </SidebarGroupContent>
-                        </SidebarGroup>
-                    </SidebarContent>
+                                            return (
+                                                <SidebarMenuItem key={item.href}>
+                                                    <SidebarMenuButton
+                                                        asChild
+                                                        isActive={isActive}
+                                                        tooltip={item.label}
+                                                        className="data-active:bg-brand-red-deep data-active:text-white data-active:hover:bg-brand-red-deep"
+                                                    >
+                                                        <Link href={item.href}>
+                                                            <HugeiconsIcon icon={item.icon} strokeWidth={2} />
+                                                            <span>{item.label}</span>
+                                                        </Link>
+                                                    </SidebarMenuButton>
+                                                </SidebarMenuItem>
+                                            );
+                                        })}
+                                    </SidebarMenu>
+                                </SidebarGroupContent>
+                            </SidebarGroup>
+                        </SidebarContent>
 
-                    <SidebarFooter>
-                        <SidebarMenu>
-                            <SidebarMenuItem>
-                                <SidebarMenuButton onClick={handleSignOut} tooltip="Sign out">
-                                    <HugeiconsIcon icon={Logout03Icon} strokeWidth={2} />
-                                    <span>Sign out</span>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </SidebarMenu>
-                    </SidebarFooter>
-                </Sidebar>
+                        <SidebarFooter>
+                            <SidebarMenu>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton onClick={handleSignOut} tooltip="Sign out">
+                                        <HugeiconsIcon icon={Logout03Icon} strokeWidth={2} />
+                                        <span>Sign out</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            </SidebarMenu>
+                        </SidebarFooter>
+                    </Sidebar>
 
-                <SidebarInset>
-                    <header className="flex items-center gap-2 border-b px-4 py-3">
-                        <SidebarTrigger />
-                    </header>
-                    <div className="flex-1 p-6">{children}</div>
-                </SidebarInset>
-            </SidebarProvider>
-        </RequireAdminSession>
+                    <SidebarInset>
+                        <header className="flex items-center gap-2 border-t-4 border-b border-t-brand-red bg-card px-4 py-3">
+                            <SidebarTrigger />
+                        </header>
+                        <div className="flex-1 p-6">{children}</div>
+                    </SidebarInset>
+                </SidebarProvider>
+            </RequireAdminSession>
+        </div>
     )
 }

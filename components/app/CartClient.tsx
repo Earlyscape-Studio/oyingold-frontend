@@ -110,10 +110,6 @@ export function CartClient() {
         toast.info("Coupons aren't availble yet.")
     }
 
-    function handleCheckout() {
-        toast.info("Checkout is coming soon");
-    }
-
     if (loading) {
         //TODO: find a way to replace this with skeleton instead
         return <p className="py-16 text-center text-sm text-muted-foreground">Loading your cart…</p>;
@@ -222,18 +218,18 @@ export function CartClient() {
                         </div>
                         <div className="flex items-center justify-between border-b pb-3">
                             <span>Shipping:</span>
-                            <span>Free</span>
+                            <span className="text-muted-foreground">Calculated at checkout</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span>Total:</span>
+                            <span>Estimated total:</span>
                             <span className="font-semibold">{formatNaira(subtotal)}</span>
                         </div>
                     </div>
                     <Button
+                        asChild
                         className="mt-6 w-full bg-red-600 text-white hover:bg-red-700"
-                        onClick={handleCheckout}
                     >
-                        Proceed to checkout
+                        <Link href="/checkout">Proceed to checkout</Link>
                     </Button>
                 </div>
             </div>

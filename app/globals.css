@@ -10,6 +10,7 @@
   --color-brand-navy: #000080;
   --color-brand-red: #f02128;
   --color-promo-red: #f1352b;
+  --color-brand-red-deep: #d91a22;
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
@@ -118,6 +119,44 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.542 0.034 322.5);
+}
+
+/* Admin theme: the brand's navy and red instead of the neutral default.
+   Scoped to .admin-theme (set by the admin layout on its wrapper and on <html>,
+   so dropdowns and dialogs that render outside the wrapper match), which keeps
+   the storefront's colors untouched. */
+.admin-theme {
+  --background: oklch(0.972 0.01 264);
+  --foreground: oklch(0.24 0.09 264);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.09 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.09 264);
+  --primary: oklch(0.271 0.188 264.1);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.94 0.025 264);
+  --secondary-foreground: oklch(0.271 0.188 264.1);
+  --muted: oklch(0.95 0.015 264);
+  --muted-foreground: oklch(0.5 0.05 264);
+  --accent: oklch(0.94 0.03 264);
+  --accent-foreground: oklch(0.271 0.188 264.1);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.9 0.02 264);
+  --input: oklch(0.88 0.025 264);
+  --ring: oklch(0.611 0.235 26.8);
+  --sidebar: oklch(0.271 0.188 264.1);
+  --sidebar-foreground: oklch(0.96 0.01 264);
+  --sidebar-primary: oklch(0.611 0.235 26.8);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.36 0.17 264);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.38 0.15 264);
+  --sidebar-ring: oklch(0.611 0.235 26.8);
+}
+
+/* Table headers get a light brand tint so tables don't read as flat white. */
+.admin-theme thead tr {
+  background-color: var(--secondary);
 }
 
 @layer base {
