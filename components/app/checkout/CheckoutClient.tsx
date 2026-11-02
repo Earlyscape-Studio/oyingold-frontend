@@ -27,6 +27,7 @@ import {
     type FieldErrors
 } from "@/lib/checkout-form";
 import { isNigerianState } from "@/lib/nigeria-states";
+import { startCardPayment } from "@/lib/payment-flow";
 import { BillingFields } from "./BillingFields";
 import { Field } from "./Field";
 import { OrderSummary } from "./OrderSummary";
@@ -169,7 +170,10 @@ export function CheckoutClient() {
         submittingRef.current = true;
         setSubmitting(true);
 
-        const result = await createOrder(buildCheckoutPayload(values), accessToken);
+        const result = await createOrder(
+            buildCheckoutPayload(values, "INLINE"),
+            accessToken
+        );
 
         if (!result.ok) {
             submittingRef.current = false;
@@ -184,9 +188,31 @@ export function CheckoutClient() {
             return;
         }
 
-        // Cash on delivery: the order is placed. (Card orders continue to
-        // payment once that step exists.) The submit stays locked until the
-        // page changes so a second click can't place another order.
+        if (result.payment) {
+            // Card: the order exists but is unpaid. Take the customer to pay. The
+            // cart stays until the payment is confirmed, and the form stays locked
+            // while the popup is open or the page is redirecting.
+            const completeUrl = (ref: string) =>
+                `/checkout/complete?reference=${encodeURIComponent(ref)}`;
+
+            const started = await startCardPayment({
+                reference: result.payment.reference,
+                orderId: result.order.id,
+                accessToken,
+                onFinished: (ref) => router.push(completeUrl(ref))
+            });
+
+            if (!started.ok) {
+                // The order is saved; the result page lets the customer try again.
+                toast.error(started.error);
+                router.push(completeUrl(result.payment.reference));
+            }
+            return;
+        }
+
+        // Cash on delivery: the order is placed and waits for the shop to confirm
+        // it. The submit stays locked until the page changes so a second click
+        // can't place another order.
         setPlacedReference(result.order.reference);
         toast.success(`Order ${result.order.reference} placed`);
         router.push("/account");
