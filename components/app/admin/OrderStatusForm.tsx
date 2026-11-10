@@ -125,6 +125,13 @@ export function OrderStatusForm({ order }: { order: Order }) {
                     </div>
                 </div>
 
+                {status === "CANCELLED" && order.status !== "CANCELLED" && (
+                    <p className="text-sm text-muted-foreground">
+                        Cancelling is final: the order can&apos;t be reopened, and any stock it was
+                        holding goes back on the shelf.
+                    </p>
+                )}
+
                 <Button onClick={handleSave} disabled={saving}>
                     {saving ? "Saving…" : "Update order"}
                 </Button>

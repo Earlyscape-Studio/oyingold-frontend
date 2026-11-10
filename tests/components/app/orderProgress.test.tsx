@@ -10,6 +10,7 @@ function makeOrder(overrides: Partial<CustomerOrder> = {}): CustomerOrder {
         reference: "OG-000042",
         status: "PENDING_PAYMENT",
         step: 1,
+        paymentMethod: "CARD",
         total: 7000,
         trackingNumber: null,
         shippingAddress: null,

@@ -23,6 +23,8 @@ import {
 import { OrderStatusForm } from "@/components/app/admin/OrderStatusForm";
 import { OrderAttentionCard } from "@/components/app/admin/OrderAttentionCard";
 import { OrderPaymentsCard } from "@/components/app/admin/OrderPaymentsCard";
+import { OrderDeliveryCard } from "@/components/app/admin/OrderDeliveryCard";
+import { OrderTotalsCard } from "@/components/app/admin/OrderTotalsCard";
 
 
 export default function AdminOrderDetailPage() {
@@ -105,6 +107,8 @@ export default function AdminOrderDetailPage() {
 
             <OrderStatusForm order={order} />
 
+            <OrderDeliveryCard order={order} />
+
             <Card>
                 <CardHeader>
                     <CardTitle className="text-sm">Items</CardTitle>
@@ -149,7 +153,9 @@ export default function AdminOrderDetailPage() {
                 </CardContent>
             </Card>
 
-            <OrderPaymentsCard payments={order.payments ?? []} />
+            <OrderTotalsCard order={order} />
+
+            <OrderPaymentsCard payments={order.payments ?? []} paymentMethod={order.paymentMethod} />
         </div>
     );
 }

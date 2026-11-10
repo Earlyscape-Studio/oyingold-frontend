@@ -1,5 +1,7 @@
 import type { OrderStatus } from "@/lib/api";
 
+export type PaymentMethod = "CARD" | "COD";
+
 export const ORDER_STEPS = [
   "Order Placed",
   "Payment confirmed",
@@ -7,6 +9,20 @@ export const ORDER_STEPS = [
   "Shipped",
   "Delivered",
 ] as const;
+
+// Cash on delivery isn't paid online: the shop confirms the order, and the cash
+// is collected when it arrives. So its second step is a confirmation, not a payment.
+const COD_ORDER_STEPS = [
+  "Order Placed",
+  "Order confirmed",
+  "Processing",
+  "Shipped",
+  "Delivered",
+] as const;
+
+export function getOrderSteps(paymentMethod?: PaymentMethod): readonly string[] {
+  return paymentMethod === "COD" ? COD_ORDER_STEPS : ORDER_STEPS;
+}
 
 export const ORDER_STATUS_META: Record<
   OrderStatus,
@@ -37,3 +53,15 @@ export const ORDER_STATUS_META: Record<
     className: "bg-red-100 text-red-800",
   },
 };
+
+const COD_LABELS: Partial<Record<OrderStatus, string>> = {
+  PENDING_PAYMENT: "Awaiting Confirmation",
+  UNFULFILLED: "Order Confirmed",
+};
+
+export function getOrderStatusMeta(status: OrderStatus, paymentMethod?: PaymentMethod) {
+  const meta = ORDER_STATUS_META[status];
+  const codLabel = paymentMethod === "COD" ? COD_LABELS[status] : undefined;
+
+  return codLabel ? { ...meta, label: codLabel } : meta;
+}

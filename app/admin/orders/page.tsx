@@ -150,6 +150,7 @@ function AdminOrdersContent() {
                                 <TableHead>Placed</TableHead>
                                 <TableHead>Items</TableHead>
                                 <TableHead>Total</TableHead>
+                                <TableHead>Payment</TableHead>
                                 <TableHead>Status</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -174,6 +175,9 @@ function AdminOrdersContent() {
                                         {order.items.length}
                                     </TableCell>
                                     <TableCell>{formatNaira(order.totalAmount)}</TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {order.paymentMethod === "COD" ? "Cash on delivery" : "Card"}
+                                    </TableCell>
                                     <TableCell>
                                         <div className="flex flex-wrap items-center gap-1.5">
                                             <Badge variant="secondary">{order.status}</Badge>

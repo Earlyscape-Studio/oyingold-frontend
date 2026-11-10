@@ -18,7 +18,13 @@ const STATUS_VARIANT = {
 } as const;
 
 // Every payment attempt on an order, so a flagged order can be matched to FCMB's dashboard.
-export function OrderPaymentsCard({ payments }: { payments: AdminPayment[] }) {
+export function OrderPaymentsCard({
+    payments,
+    paymentMethod
+}: {
+    payments: AdminPayment[];
+    paymentMethod?: "CARD" | "COD";
+}) {
     return (
         <Card>
             <CardHeader>
@@ -27,7 +33,9 @@ export function OrderPaymentsCard({ payments }: { payments: AdminPayment[] }) {
             <CardContent>
                 {payments.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                        No card payments on this order.
+                        {paymentMethod === "COD"
+                            ? "Cash on delivery: payment is collected when the order is delivered."
+                            : "No card payments on this order."}
                     </p>
                 ) : (
                     <Table>

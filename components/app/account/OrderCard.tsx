@@ -24,7 +24,7 @@ export function OrderCard({ order }: { order: CustomerOrder }) {
                     <p className="text-sm text-muted-foreground">Total</p>
                     <p className="mt-1 font-semibold text-blue-950">{formatNaira(order.total)}</p>
                 </div>
-                <OrderStatusPill status={order.status} className="justify-self-start sm:justify-self-end" />
+                <OrderStatusPill status={order.status} paymentMethod={order.paymentMethod} className="justify-self-start sm:justify-self-end" />
             </header>
 
             <ul className="divide-y px-6">
@@ -75,7 +75,7 @@ export function OrderCard({ order }: { order: CustomerOrder }) {
                         This order was cancelled.
                     </p>
                 ) : (
-                    <OrderProgress step={order.step} />
+                    <OrderProgress step={order.step} paymentMethod={order.paymentMethod} />
                 )}
             </div>
         </article>

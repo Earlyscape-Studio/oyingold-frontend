@@ -1,15 +1,17 @@
 import { cn } from "@/lib/utils";
-import { ORDER_STATUS_META } from "@/lib/order-status";
+import { getOrderStatusMeta, type PaymentMethod } from "@/lib/order-status";
 import type { OrderStatus } from "@/lib/api";
 
 export function OrderStatusPill({
     status,
+    paymentMethod,
     className,
 }: {
     status: OrderStatus;
+    paymentMethod?: PaymentMethod;
     className?: string;
 }) {
-    const meta = ORDER_STATUS_META[status];
+    const meta = getOrderStatusMeta(status, paymentMethod);
 
     return (
         <span

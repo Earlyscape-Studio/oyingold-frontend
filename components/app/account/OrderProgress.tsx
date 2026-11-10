@@ -1,10 +1,16 @@
 import { cn } from "@/lib/utils";
-import { ORDER_STEPS } from "@/lib/order-status";
+import { getOrderSteps, type PaymentMethod } from "@/lib/order-status";
 
-export function OrderProgress({ step }: { step: number }) {
+export function OrderProgress({
+    step,
+    paymentMethod,
+}: {
+    step: number;
+    paymentMethod?: PaymentMethod;
+}) {
     return (
         <ol aria-label="Order progress" className="flex w-full">
-            {ORDER_STEPS.map((label, index) => {
+            {getOrderSteps(paymentMethod).map((label, index) => {
                 const stepNumber = index + 1;
                 const reached = stepNumber <= step;
                 const isCurrent = stepNumber === step;
