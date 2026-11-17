@@ -8,7 +8,6 @@ const PHONE_RE = /^[+\d][\d\s()-]{6,19}$/;
 export type CheckoutFormValues = {
     firstName: string;
     lastName: string;
-    companyName: string;
     address: string;
     country: string;
     state: string;
@@ -37,7 +36,6 @@ export type FieldErrors = Partial<Record<keyof CheckoutFormValues, string>>;
 export const EMPTY_FORM: CheckoutFormValues = {
     firstName: "",
     lastName: "",
-    companyName: "",
     address: "",
     country: "Nigeria",
     state: "",
@@ -63,7 +61,7 @@ export const EMPTY_FORM: CheckoutFormValues = {
 
 // Visual order of the form, so submit can focus the first invalid field a person would see.
 const FIELD_ORDER: (keyof CheckoutFormValues)[] = [
-    "firstName", "lastName", "companyName", "address", "state", "lga", "city", "zipCode",
+    "firstName", "lastName","address", "state", "lga", "city", "zipCode",
     "email", "phone",
     "shipFullName", "shipPhone", "shipStreet", "shipState", "shipLga", "shipCity", "shipZipCode",
     "notes"
@@ -114,7 +112,6 @@ export function validateCheckoutForm(values: CheckoutFormValues): FieldErrors {
     if (!phone) errors.phone = "Phone number is required";
     else if (!PHONE_RE.test(phone)) errors.phone = "Enter a valid phone number";
 
-    if (values.companyName.trim().length > 200) errors.companyName = "Company name is too long";
     if (values.notes.trim().length > 1000) errors.notes = "Notes can be at most 1000 characters";
 
     if (values.shipToDifferent) {
@@ -189,7 +186,6 @@ export function buildCheckoutPayload(
         contact: {
             email: values.email.trim(),
             phone: values.phone.trim(),
-            companyName: optional(values.companyName)
         },
         shippingAddress,
         notes: optional(values.notes),
