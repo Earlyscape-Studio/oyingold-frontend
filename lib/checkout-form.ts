@@ -1,4 +1,4 @@
-import { isNigerianState } from "@/lib/nigeria-states";
+import { isLgaOfState, isNigerianState } from "@/lib/nigeria-locations";
 import type { CheckoutMode, CreateOrderInput, PaymentMethod } from "@/lib/checkout-api";
 
 // Same rules as the API, so most mistakes are caught before a request is made.
@@ -12,6 +12,7 @@ export type CheckoutFormValues = {
     address: string;
     country: string;
     state: string;
+    lga: string;
     city: string;
     zipCode: string;
     email: string;
@@ -22,6 +23,7 @@ export type CheckoutFormValues = {
     shipPhone: string;
     shipStreet: string;
     shipState: string;
+    shipLga: string;
     shipCity: string;
     shipZipCode: string;
 
@@ -39,6 +41,7 @@ export const EMPTY_FORM: CheckoutFormValues = {
     address: "",
     country: "Nigeria",
     state: "",
+    lga: "",
     city: "",
     zipCode: "",
     email: "",
@@ -49,6 +52,7 @@ export const EMPTY_FORM: CheckoutFormValues = {
     shipPhone: "",
     shipStreet: "",
     shipState: "",
+    shipLga: "",
     shipCity: "",
     shipZipCode: "",
 
@@ -59,9 +63,9 @@ export const EMPTY_FORM: CheckoutFormValues = {
 
 // Visual order of the form, so submit can focus the first invalid field a person would see.
 const FIELD_ORDER: (keyof CheckoutFormValues)[] = [
-    "firstName", "lastName", "companyName", "address", "state", "city", "zipCode",
+    "firstName", "lastName", "companyName", "address", "state", "lga", "city", "zipCode",
     "email", "phone",
-    "shipFullName", "shipPhone", "shipStreet", "shipState", "shipCity", "shipZipCode",
+    "shipFullName", "shipPhone", "shipStreet", "shipState", "shipLga", "shipCity", "shipZipCode",
     "notes"
 ];
 
@@ -78,6 +82,16 @@ export function splitFullName(fullName: string | null | undefined): {firstName: 
 // The state that decides shipping: the delivery address, not the billing one.
 export function getDeliveryState(values: CheckoutFormValues): string {
     return values.shipToDifferent ? values.shipState : values.state;
+}
+
+// A local government belongs to one state, so it is cleared whenever it no longer fits the
+// state beside it. Doing this on the merged values (rather than in each select's handler)
+// keeps it correct however the state changed: picked by hand or filled from a saved address.
+export function normalizeLocation(values: CheckoutFormValues): CheckoutFormValues {
+    const lga = isLgaOfState(values.state, values.lga) ? values.lga : "";
+    const shipLga = isLgaOfState(values.shipState, values.shipLga) ? values.shipLga : "";
+    if (lga === values.lga && shipLga === values.shipLga) return values;
+    return {...values, lga, shipLga};
 }
 
 export function validateCheckoutForm(values: CheckoutFormValues): FieldErrors {
@@ -115,6 +129,11 @@ export function validateCheckoutForm(values: CheckoutFormValues): FieldErrors {
         if (!values.shipState) errors.shipState = "Select a state";
         else if (!isNigerianState(values.shipState)) errors.shipState = "Select a valid state";
 
+        if (!values.shipLga) errors.shipLga = "Select a local government";
+        else if (!isLgaOfState(values.shipState, values.shipLga)) {
+            errors.shipLga = "Select a local government in the chosen state";
+        }
+
         if (values.shipZipCode.trim().length > 20) errors.shipZipCode = "Zip code is too long";
     } else {
         // Billing address fields double as the delivery address.
@@ -123,6 +142,11 @@ export function validateCheckoutForm(values: CheckoutFormValues): FieldErrors {
 
         if (!values.state) errors.state = "Select a state";
         else if (!isNigerianState(values.state)) errors.state = "Select a valid state";
+
+        if (!values.lga) errors.lga = "Select a local government";
+        else if (!isLgaOfState(values.state, values.lga)) {
+            errors.lga = "Select a local government in the chosen state";
+        }
 
         if (values.zipCode.trim().length > 20) errors.zipCode = "Zip code is too long";
     }
@@ -144,6 +168,7 @@ export function buildCheckoutPayload(
             street: values.shipStreet.trim(),
             city: values.shipCity.trim(),
             state: values.shipState,
+            lga: values.shipLga,
             country: values.country,
             zipCode: optional(values.shipZipCode)
         }
@@ -153,6 +178,7 @@ export function buildCheckoutPayload(
             street: values.address.trim(),
             city: values.city.trim(),
             state: values.state,
+            lga: values.lga,
             country: values.country,
             zipCode: optional(values.zipCode)
         };

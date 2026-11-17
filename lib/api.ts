@@ -196,6 +196,8 @@ export type ShippingAddress = {
     street: string;
     city: string;
     state: string;
+    // Local government area. Missing on addresses and orders from before it was collected.
+    lga?: string | null;
     country: string;
     // Only present on the address snapshot taken at checkout, not on saved addresses.
     zipCode?: string;
@@ -250,6 +252,11 @@ type ProductListParams = {
     category?: string;
     brand?: string;
     q?: string;
+    limit?: number;
+}
+
+type ProductListOptions = {
+    signal?: AbortSignal;
 }
 
 
@@ -325,17 +332,20 @@ export async function getBrands(): Promise<Brand[]> {
 
 
 export async function getProducts(
-    params: ProductListParams = {}
+    params: ProductListParams = {},
+    options: ProductListOptions = {}
 ): Promise<Product[]>{
     const searchParams = new URLSearchParams();
     if (params.category) searchParams.set("category", params.category);
     if (params.brand) searchParams.set("brand", params.brand);
     if (params.q) searchParams.set("q", params.q);
+    if (params.limit) searchParams.set("limit", String(params.limit));
 
 
     const res = await fetch(`${API_URL}/products?${searchParams.toString()}`, {
         // next: {revalidate: 30}
-        cache: "no-store"
+        cache: "no-store",
+        signal: options.signal
     });
 
     if(!res.ok){

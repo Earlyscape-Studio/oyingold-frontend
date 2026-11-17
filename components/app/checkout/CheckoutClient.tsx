@@ -21,12 +21,13 @@ import {
     buildCheckoutPayload,
     firstInvalidField,
     getDeliveryState,
+    normalizeLocation,
     splitFullName,
     validateCheckoutForm,
     type CheckoutFormValues,
     type FieldErrors
 } from "@/lib/checkout-form";
-import { isNigerianState } from "@/lib/nigeria-states";
+import { isLgaOfState, isNigerianState } from "@/lib/nigeria-locations";
 import { startCardPayment } from "@/lib/payment-flow";
 import { BillingFields } from "./BillingFields";
 import { Field } from "./Field";
@@ -72,7 +73,7 @@ export function CheckoutClient() {
     const hasItems = !!cart && cart.items.length > 0;
 
     function update(patch: Partial<CheckoutFormValues>) {
-        setValues((prev) => ({ ...prev, ...patch }));
+        setValues((prev) => normalizeLocation({ ...prev, ...patch }));
         // Clear the message for any field being edited.
         setErrors((prev) => {
             const next = { ...prev };
@@ -111,15 +112,25 @@ export function CheckoutClient() {
                     addresses[0];
                 const addressName = splitFullName(address.fullName);
 
-                setValues((prev) => ({
-                    ...prev,
-                    firstName: prev.firstName || addressName.firstName,
-                    lastName: prev.lastName || addressName.lastName,
-                    phone: prev.phone || address.phone,
-                    address: prev.address || address.street,
-                    city: prev.city || address.city,
-                    state: prev.state || (isNigerianState(address.state) ? address.state : "")
-                }));
+                setValues((prev) => {
+                    const state = prev.state || (isNigerianState(address.state) ? address.state : "");
+                    // Older saved addresses have no LGA, and one only fits the state it was saved with.
+                    const lga =
+                        address.lga && state === address.state && isLgaOfState(state, address.lga)
+                            ? address.lga
+                            : "";
+
+                    return {
+                        ...prev,
+                        firstName: prev.firstName || addressName.firstName,
+                        lastName: prev.lastName || addressName.lastName,
+                        phone: prev.phone || address.phone,
+                        address: prev.address || address.street,
+                        city: prev.city || address.city,
+                        state,
+                        lga: prev.lga || lga
+                    };
+                });
             })
             .catch(() => {
                 // Prefill is a convenience; a failure just leaves the form empty.

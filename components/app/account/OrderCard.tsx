@@ -3,10 +3,19 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Image01Icon } from "@hugeicons/core-free-icons";
 import { OrderProgress } from "@/components/app/account/OrderProgress";
 import { OrderStatusPill } from "@/components/app/account/OrderStatusPill";
+import { PayNowButton, canPayNow } from "@/components/app/account/PayNowButton";
 import { formatNaira, formatOrderDate } from "@/lib/format";
 import type { CustomerOrder } from "@/lib/api";
 
-export function OrderCard({ order }: { order: CustomerOrder }) {
+export function OrderCard({
+    order,
+    accessToken
+}: {
+    order: CustomerOrder;
+    accessToken?: string;
+}) {
+    const showPayNow = Boolean(accessToken) && canPayNow(order);
+
     return (
         <article className="overflow-hidden rounded-3xl border bg-card">
             <header className="m-3 mb-0 grid grid-cols-2 items-center gap-4 rounded-xl bg-muted/60 px-5 py-4 sm:grid-cols-[1fr_1fr_1fr_auto]">
@@ -59,6 +68,15 @@ export function OrderCard({ order }: { order: CustomerOrder }) {
                     </li>
                 ))}
             </ul>
+
+            {showPayNow && accessToken && (
+                <div className="mx-6 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md bg-amber-50 px-4 py-3">
+                    <p className="text-sm text-amber-900">
+                        This order is waiting for your card payment.
+                    </p>
+                    <PayNowButton orderId={order.id} accessToken={accessToken} />
+                </div>
+            )}
 
             <div className="px-6 pt-2 pb-8">
                 <div className="mb-5 flex flex-wrap items-center justify-between gap-2">

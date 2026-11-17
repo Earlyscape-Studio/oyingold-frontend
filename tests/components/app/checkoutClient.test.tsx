@@ -60,6 +60,7 @@ vi.mock("@/lib/api", async (importOriginal) => ({
             street: "25 City Drive",
             city: "Victoria Island",
             state: "Lagos",
+            lga: "Eti-Osa",
             country: "Nigeria",
             isDefault: true,
             isLastUsed: true
@@ -140,7 +141,7 @@ describe("CheckoutClient: card payments", () => {
             paymentMethod: "CARD",
             checkoutMode: "INLINE",
             contact: { email: "ada@example.com" },
-            shippingAddress: { state: "Lagos", street: "25 City Drive", country: "Nigeria" }
+            shippingAddress: { state: "Lagos", lga: "Eti-Osa", street: "25 City Drive", country: "Nigeria" }
         });
 
         const args = vi.mocked(startCardPayment).mock.calls[0][0];

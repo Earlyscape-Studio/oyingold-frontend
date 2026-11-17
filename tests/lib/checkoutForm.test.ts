@@ -4,6 +4,7 @@ import {
     buildCheckoutPayload,
     firstInvalidField,
     getDeliveryState,
+    normalizeLocation,
     splitFullName,
     validateCheckoutForm,
     type CheckoutFormValues
@@ -16,6 +17,7 @@ function validForm(overrides: Partial<CheckoutFormValues> = {}): CheckoutFormVal
         lastName: "Nwosu",
         address: "25 City Drive",
         state: "Lagos",
+        lga: "Eti-Osa",
         city: "Victoria Island",
         email: "ada@example.com",
         phone: "+234 812 3456 789",
@@ -31,7 +33,7 @@ describe("validateCheckoutForm", () => {
     it("flags missing required fields", () => {
         const errors = validateCheckoutForm(EMPTY_FORM);
         expect(Object.keys(errors).sort()).toEqual(
-            ["address", "city", "email", "firstName", "lastName", "phone", "state"].sort()
+            ["address", "city", "email", "firstName", "lastName", "lga", "phone", "state"].sort()
         );
     });
 
@@ -44,6 +46,21 @@ describe("validateCheckoutForm", () => {
         expect(errors.state).toBeDefined();
     });
 
+    it("requires a local government that belongs to the chosen state", () => {
+        expect(validateCheckoutForm(validForm({ lga: "" })).lga).toBeDefined();
+        // Ikeja is in Lagos, not Oyo.
+        expect(validateCheckoutForm(validForm({ state: "Oyo", lga: "Ikeja" })).lga).toBeDefined();
+        expect(validateCheckoutForm(validForm({ state: "Oyo", lga: "Ibadan North" })).lga).toBeUndefined();
+    });
+
+    it("checks the delivery local government when shipping elsewhere", () => {
+        const ship = { shipToDifferent: true, shipFullName: "Chidi Okafor", shipPhone: "08011112222", shipStreet: "4 Market Road", shipCity: "Ibadan", shipState: "Oyo" };
+
+        expect(validateCheckoutForm(validForm({ ...ship, shipLga: "" })).shipLga).toBeDefined();
+        expect(validateCheckoutForm(validForm({ ...ship, shipLga: "Ikeja" })).shipLga).toBeDefined();
+        expect(validateCheckoutForm(validForm({ ...ship, shipLga: "Ibadan North" }))).toEqual({});
+    });
+
     it("validates the delivery address instead of the billing one when shipping elsewhere", () => {
         const errors = validateCheckoutForm(
             validForm({ shipToDifferent: true, address: "", state: "", city: "" })
@@ -53,6 +70,8 @@ describe("validateCheckoutForm", () => {
         expect(errors.shipFullName).toBeDefined();
         expect(errors.shipStreet).toBeDefined();
         expect(errors.shipState).toBeDefined();
+        expect(errors.shipLga).toBeDefined();
+        expect(errors.lga).toBeUndefined();
         expect(errors.shipCity).toBeDefined();
         expect(errors.shipPhone).toBeDefined();
     });
@@ -84,6 +103,20 @@ describe("splitFullName", () => {
     });
 });
 
+describe("normalizeLocation", () => {
+    it("keeps a local government that fits its state", () => {
+        const values = validForm();
+        expect(normalizeLocation(values)).toBe(values);
+    });
+
+    it("clears a local government when the state changes to one that doesn't contain it", () => {
+        expect(normalizeLocation(validForm({ state: "Oyo" })).lga).toBe("");
+        expect(
+            normalizeLocation(validForm({ shipToDifferent: true, shipState: "Oyo", shipLga: "Ikeja" })).shipLga
+        ).toBe("");
+    });
+});
+
 describe("buildCheckoutPayload", () => {
     it("uses the billing details as the delivery address by default", () => {
         const payload = buildCheckoutPayload(validForm({ notes: "  Leave at gate  " }));
@@ -96,6 +129,7 @@ describe("buildCheckoutPayload", () => {
                 street: "25 City Drive",
                 city: "Victoria Island",
                 state: "Lagos",
+                lga: "Eti-Osa",
                 country: "Nigeria",
                 zipCode: undefined
             },
@@ -112,6 +146,7 @@ describe("buildCheckoutPayload", () => {
                 shipPhone: "08011112222",
                 shipStreet: "4 Market Road",
                 shipState: "Oyo",
+                shipLga: "Ibadan North",
                 shipCity: "Ibadan",
                 shipZipCode: "200001"
             })
@@ -122,6 +157,7 @@ describe("buildCheckoutPayload", () => {
             street: "4 Market Road",
             city: "Ibadan",
             state: "Oyo",
+            lga: "Ibadan North",
             country: "Nigeria",
             zipCode: "200001"
         });

@@ -29,7 +29,7 @@ export function OrderDeliveryCard({ order }: { order: Order }) {
                             <address className="not-italic">
                                 <span className="block">{address.street}</span>
                                 <span className="block">
-                                    {[address.city, address.state, address.zipCode]
+                                    {[address.city, address.lga, address.state, address.zipCode]
                                         .filter(Boolean)
                                         .join(", ")}
                                 </span>

@@ -85,7 +85,7 @@ export function MyOrders({ accessToken }: { accessToken: string }) {
                 ) : (
                     <>
                         {orders.map((order) => (
-                            <OrderCard key={order.id} order={order} />
+                            <OrderCard key={order.id} order={order} accessToken={accessToken} />
                         ))}
 
                         {error && (

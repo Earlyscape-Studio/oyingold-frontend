@@ -37,6 +37,7 @@ export type CreateOrderInput = {
         street: string;
         city: string;
         state: string;
+        lga: string;
         country: string;
         zipCode?: string;
     };

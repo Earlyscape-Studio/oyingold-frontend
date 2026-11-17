@@ -8,7 +8,7 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select";
-import { NIGERIAN_STATES } from "@/lib/nigeria-states";
+import { NIGERIAN_STATES, getLgas } from "@/lib/nigeria-locations";
 import type { CheckoutFormValues, FieldErrors } from "@/lib/checkout-form";
 import { Field } from "./Field";
 
@@ -19,33 +19,46 @@ type Props = {
     onChange: (patch: Partial<CheckoutFormValues>) => void;
 };
 
-function StateSelect({
+function OptionSelect({
     name,
     value,
+    options,
+    placeholder = "Select...",
     error,
     disabled,
     onChange
 }: {
     name: string;
     value: string;
+    options: readonly string[];
+    placeholder?: string;
     error?: string;
     disabled: boolean;
     onChange: (value: string) => void;
 }) {
     return (
-        <Select value={value} onValueChange={onChange} disabled={disabled}>
+        // Radix also reports a blank value while the options of a freshly filled select are
+        // still mounting. There is no blank choice a person can pick, so blanks are ignored
+        // rather than allowed to wipe a value that a saved address just filled in.
+        <Select
+            value={value}
+            onValueChange={(next) => {
+                if (next) onChange(next);
+            }}
+            disabled={disabled}
+        >
             <SelectTrigger
                 id={`field-${name}`}
                 className="h-11 w-full"
                 aria-invalid={!!error}
                 aria-describedby={error ? `field-${name}-error` : undefined}
             >
-                <SelectValue placeholder="Select..." />
+                <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
-                {NIGERIAN_STATES.map((state) => (
-                    <SelectItem key={state} value={state}>
-                        {state}
+                {options.map((option) => (
+                    <SelectItem key={option} value={option}>
+                        {option}
                     </SelectItem>
                 ))}
             </SelectContent>
@@ -92,19 +105,35 @@ export function BillingFields({ values, errors, disabled, onChange }: Props) {
                 />
             </Field>
 
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3">
                 <Field name="country" label="Country">
                     <Input {...input("country")} readOnly disabled />
                 </Field>
                 <Field name="state" label="Region/State" error={errors.state}>
-                    <StateSelect
+                    <OptionSelect
                         name="state"
                         value={values.state}
+                        options={NIGERIAN_STATES}
                         error={errors.state}
                         disabled={disabled || !billingAddressUsed}
+                        // The form clears an LGA that doesn't belong to the new state.
                         onChange={(state) => onChange({ state })}
                     />
                 </Field>
+                <Field name="lga" label="Local Government" error={errors.lga}>
+                    <OptionSelect
+                        name="lga"
+                        value={values.lga}
+                        options={getLgas(values.state)}
+                        placeholder={values.state ? "Select..." : "Select a state first"}
+                        error={errors.lga}
+                        disabled={disabled || !billingAddressUsed || !values.state}
+                        onChange={(lga) => onChange({ lga })}
+                    />
+                </Field>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
                 <Field name="city" label="City" error={errors.city}>
                     <Input
                         {...input("city")}
@@ -158,16 +187,31 @@ export function BillingFields({ values, errors, disabled, onChange }: Props) {
                         <Input {...input("shipStreet")} autoComplete="shipping street-address" />
                     </Field>
 
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 md:grid-cols-2">
                         <Field name="shipState" label="Region/State" error={errors.shipState}>
-                            <StateSelect
+                            <OptionSelect
                                 name="shipState"
                                 value={values.shipState}
+                                options={NIGERIAN_STATES}
                                 error={errors.shipState}
                                 disabled={disabled}
                                 onChange={(shipState) => onChange({ shipState })}
                             />
                         </Field>
+                        <Field name="shipLga" label="Local Government" error={errors.shipLga}>
+                            <OptionSelect
+                                name="shipLga"
+                                value={values.shipLga}
+                                options={getLgas(values.shipState)}
+                                placeholder={values.shipState ? "Select..." : "Select a state first"}
+                                error={errors.shipLga}
+                                disabled={disabled || !values.shipState}
+                                onChange={(shipLga) => onChange({ shipLga })}
+                            />
+                        </Field>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
                         <Field name="shipCity" label="City" error={errors.shipCity}>
                             <Input {...input("shipCity")} autoComplete="shipping address-level2" />
                         </Field>

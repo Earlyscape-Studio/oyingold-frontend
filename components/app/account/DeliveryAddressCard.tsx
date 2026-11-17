@@ -46,7 +46,7 @@ export function DeliveryAddressCard({ addresses }: Props) {
                         <address className="mt-1 text-sm leading-6 text-muted-foreground not-italic">
                             {address.street}
                             <br />
-                            {address.city}, {address.state}
+                            {[address.city, address.lga, address.state].filter(Boolean).join(", ")}
                             <br />
                             {address.country}
                             <br />
